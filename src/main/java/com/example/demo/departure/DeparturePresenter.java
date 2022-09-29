@@ -153,10 +153,10 @@ public class DeparturePresenter {
         }
 
         if (port.getTerminals().size() > 0) {
-            TerminalDto terminalDto = port.getTerminals().get(0);
-            cb.setSelectedItem(terminalDto);
-            setLatitude(terminalDto.getLatitude());
-            setLongitude(terminalDto.getLongitude());
+            DeparturePresenter.this.terminal = port.getTerminals().get(0);
+            cb.setSelectedItem(DeparturePresenter.this.terminal);
+            setLatitude(DeparturePresenter.this.terminal.getLatitude());
+            setLongitude(DeparturePresenter.this.terminal.getLongitude());
         }
     }
 

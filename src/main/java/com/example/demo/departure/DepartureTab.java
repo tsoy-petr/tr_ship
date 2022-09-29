@@ -11,18 +11,11 @@ import com.example.demo.settings.DataSettings;
 import com.example.demo.settings.SettingsPresenter;
 import com.example.demo.utils.FormatHelper;
 import com.example.demo.utils.GridBagHelper;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URLEncoder;
 import java.util.concurrent.ExecutionException;
 
 public class DepartureTab extends JPanel {
@@ -310,7 +303,7 @@ public class DepartureTab extends JPanel {
                 case "comboBoxChanged":
 
                     try {
-                        TerminalDto selectedTerminal = (TerminalDto) cbPortDeparture.getModel().getSelectedItem();
+                        TerminalDto selectedTerminal = (TerminalDto) cbTerminalDeparture.getModel().getSelectedItem();
                         departurePresenter.setTerminal(selectedTerminal);
                     } catch (ClassCastException ex) {
                         System.out.println(ex);
