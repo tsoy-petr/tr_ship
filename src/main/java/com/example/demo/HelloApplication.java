@@ -8,6 +8,8 @@ import com.example.demo.departure.DepartureTab;
 import com.example.demo.model.SeaPortDto;
 import com.example.demo.model.SettingsEmailDto;
 import com.example.demo.model.TerminalDto;
+import com.example.demo.noon.NoonPresenter;
+import com.example.demo.noon.NoonTab;
 import com.example.demo.settings.SettingsPresenter;
 import com.example.demo.settings.SettingsTab;
 
@@ -55,6 +57,7 @@ public class HelloApplication {
             }
         });
         tabbedPane.addTab("DEPARTURE", initDer());
+        tabbedPane.addTab("NOON", initNoonReport());
         tabbedPane.addTab("SETTINGS", initSett());
         tabbedPane.addTab("Data ports", initDataPorts());
         frame.add(BorderLayout.CENTER, new JScrollPane(tabbedPane));
@@ -67,22 +70,13 @@ public class HelloApplication {
         JPanel tab = new JPanel();
         tab.setLayout(new FlowLayout());
         tab.add(new DepartureTab(new DeparturePresenter()));
-////        JScrollPane jScrollPane = new JScrollPane();
-////        jScrollPane.add(new DepartureTab(new DeparturePresenter()));
-////
-////        tab.add(jScrollPane);
-//
-//
-//
-//        JScrollPane jScrollPane = new JScrollPane();
-//        jScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
-//        jScrollPane.add(tab);
-//
-//        JPanel contentPane = new JPanel(null);
-//        contentPane.setPreferredSize(new Dimension(500, 400));
-//        contentPane.add(jScrollPane);
+        return tab;
+    }
 
-//        return contentPane;
+    private JPanel initNoonReport() {
+        JPanel tab = new JPanel();
+        tab.setLayout(new FlowLayout());
+        tab.add(new NoonTab(new NoonPresenter()));
         return tab;
     }
 

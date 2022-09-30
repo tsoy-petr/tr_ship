@@ -1,30 +1,53 @@
 package com.example.demo.noon
 
+import com.example.demo.core.TabReport
+import com.example.demo.dataPorts.DataSourcePorts
 import com.example.demo.model.SeaPortDto
-import com.example.demo.utils.GridBagHelper
-import java.awt.GridBagLayout
+import com.example.demo.utils.FormsUtils
+import com.example.demo.utils.newActionListener
 import javax.swing.JComboBox
 import javax.swing.JFormattedTextField
 import javax.swing.JLabel
-import javax.swing.JPanel
 
 class NoonTab(
     private val noonPresenter: NoonPresenter
-) : JPanel() {
+) : TabReport() {
 
-    private val helper = GridBagHelper()
     private val tfVoyNo = JFormattedTextField()
     private val cbLastPort = JComboBox<SeaPortDto>()
     private val cbNextPort = JComboBox<SeaPortDto>()
-
+    private val cbTZ = JComboBox<String>()
 
     init {
-        layout = GridBagLayout()
+
+        tfVoyNo.setColumns(10)
+
+        FormsUtils.initListTimeZone(cbTZ)
+        cbTZ.newActionListener { newTZ ->
+            noonPresenter.setTZ(newTZ)
+        }
+
+        FormsUtils.initListPorts(DataSourcePorts.getInstance(), cbLastPort, setPort = {}, setUnlocode = {}, setLatitude = {}, setLongitude = {})
+        FormsUtils.initListPorts(DataSourcePorts.getInstance(), cbNextPort, setPort = {}, setUnlocode = {}, setLatitude = {}, setLongitude = {})
 
 
-        //отступ сверху
-        helper.insertEmptyRow(this, 10)
+        inflateUI()
 
-        add(JLabel("Voy"))
+    }
+
+    private fun inflateUI() {
+        insertEmptyRow()
+            .addNextCellAlignRightGap(JLabel("Voy"))
+            .addNextCellFillBoth(tfVoyNo)
+            .nextEmptyCell()
+            .addNextCellAlignRightGap(JLabel("Time Zone GMT"))
+            .addNextCellFillBoth(cbTZ)
+
+        insertEmptyRow()
+            .addNextCellAlignRightGap(JLabel("Last port"))
+            .addNextCellFillBoth(cbLastPort)
+            .nextEmptyCell()
+            .addNextCellAlignRightGap(JLabel("Next port"))
+            .addNextCellFillBoth(cbNextPort)
     }
 }

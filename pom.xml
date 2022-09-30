@@ -10,7 +10,7 @@
     <name>demo</name>
 
     <properties>
-        <kotlin.version>1.7.20-RC</kotlin.version>
+        <kotlin.version>1.7.20</kotlin.version>
     </properties>
 
 

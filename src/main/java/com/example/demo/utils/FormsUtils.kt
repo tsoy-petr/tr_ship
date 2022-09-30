@@ -12,9 +12,9 @@ class FormsUtils {
 
         fun initListPorts(
             dataSourcePorts: DataSourcePorts,
-            cb: JComboBox<SeaPortDto?>,
-            terminalsCb: JComboBox<TerminalDto?>?,
-            timezoneCb: JComboBox<String?>?,
+            cb: JComboBox<SeaPortDto>,
+            terminalsCb: JComboBox<TerminalDto>? = null,
+            timezoneCb: JComboBox<String>? = null,
             setPort: (SeaPortDto) -> Unit,
             setUnlocode: (String) -> Unit, setLatitude: (Position) -> Unit, setLongitude: (Position) -> Unit
         ) {
@@ -22,7 +22,7 @@ class FormsUtils {
 
             cb.removeAllItems()
             var firstPort: SeaPortDto? = null
-            val ports: List<SeaPortDto> = dataSourcePorts.getPorts()
+            val ports: List<SeaPortDto> = dataSourcePorts.ports
             for (port in ports) {
                 cb.addItem(port)
                 if (firstPort == null) {
@@ -30,9 +30,7 @@ class FormsUtils {
                 }
             }
             if (firstPort != null) {
-                if (terminalsCb != null) {
-                    initListTerminals(terminalsCb, firstPort, setLatitude, setLongitude)
-                }
+                terminalsCb?.let { initListTerminals(it, firstPort, setLatitude, setLongitude) }
                 if (timezoneCb != null) {
                     timezoneCb.selectedItem = firstPort.timeZone
                 }
@@ -42,7 +40,7 @@ class FormsUtils {
         }
 
         fun initListTerminals(
-            cb: JComboBox<TerminalDto?>, port: SeaPortDto, setLatitude: (Position) -> Unit,
+            cb: JComboBox<TerminalDto>, port: SeaPortDto, setLatitude: (Position) -> Unit,
             setLongitude: (Position) -> Unit
         ) {
             cb.removeAllItems()
@@ -52,12 +50,25 @@ class FormsUtils {
             if (port.terminals.size > 0) {
                 val terminalDto = port.terminals[0]
                 cb.selectedItem = terminalDto
-                setLatitude(terminalDto.getLatitude())
-                setLongitude(terminalDto.getLongitude())
+                setLatitude(terminalDto.latitude)
+                setLongitude(terminalDto.longitude)
             }
 
         }
 
+        fun initListTimeZone(cb: JComboBox<String>) {
+            cb.removeAllItems()
+            for (i in 0..12) {
+                if (i == 0) {
+                    cb.addItem("0")
+                } else {
+                    cb.addItem("+$i")
+                }
+            }
+            for (i in 1..12) {
+                cb.addItem("-$i")
+            }
+        }
     }
 
 }

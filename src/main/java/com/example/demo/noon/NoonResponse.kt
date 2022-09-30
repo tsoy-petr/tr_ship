@@ -3,13 +3,13 @@ package com.example.demo.noon
 import com.example.demo.core.Position
 
 data class NoonResponse(
-    val voyNo: String,
-    val timeXZone: Int,
-    val dateLt: String,
-    val timeLt: String,
-    val status: Status,
-    val unlocode: String,
-    val terminalUUID: String,
+    val voyNo: String = "",
+    val timeZone: String = "",
+    val dateLt: String = "",
+    val timeLt: String = "",
+    val status: Status = Status.AtSeeAdrift,
+    val unlocode: String = "",
+    val terminalUUID: String = "",
     var latitude: Position? = null,
     val longitude: Position? = null,
     val seaPassageDistance: Double = 0.0,
