@@ -7,8 +7,10 @@ data class NoonResponse(
     val timeZone: String = "",
     val dateLt: String = "",
     val timeLt: String = "",
-    val status: Status = Status.AtSeeAdrift,
+    val status: String = "",
     val unlocode: String = "",
+    val unlocodeNext: String = "",
+    val unlocodeLast: String = "",
     val terminalUUID: String = "",
     var latitude: Position? = null,
     val longitude: Position? = null,
@@ -32,5 +34,16 @@ data class NoonResponse(
 )
 
 enum class Status {
-    AtSeeAdrift, ASseeUnderway, AtAnchor, InPort
+    AtSeeAdrift {
+        override fun toString() = "At see/Adrift"
+    },
+    ASseeUnderway {
+        override fun toString() = "At see/Underway"
+    },
+    AtAnchor {
+        override fun toString() = "At anchor"
+    },
+    InPort {
+        override fun toString() = "In port"
+    }
 }

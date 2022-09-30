@@ -1,12 +1,13 @@
 package com.example.demo.utils
 
+import java.awt.event.ActionEvent
 import javax.swing.JComboBox
 
-fun JComboBox<String>.newActionListener(onResult: (String) -> Unit) {
-    this.addActionListener { _ ->
+fun <E : Any?> JComboBox<E>.newActionListener(onResult: (E, action: ActionEvent) -> Unit) {
+    this.addActionListener { e ->
         try {
-            val item: String = this.model.selectedItem as String
-            onResult(item)
+            val item: E = this.model.selectedItem as E
+            onResult(item, e)
         } catch (e: Exception) {
             e.printStackTrace()
         }

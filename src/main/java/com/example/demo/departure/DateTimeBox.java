@@ -19,7 +19,7 @@ public class DateTimeBox extends JPanel {
     private DatePicker date = new DatePicker();
     private TimePicker timePicker = new TimePicker();
 
-    DateTimeBox() {
+    public DateTimeBox() {
 
         super();
 
@@ -60,6 +60,20 @@ public class DateTimeBox extends JPanel {
 
     }
 
+    public DateChangeLister getDateChangeLister() {
+        return dateChangeLister;
+    }
 
+    public void setDateChangeLister(DateChangeLister dateChangeLister) {
+        this.dateChangeLister = dateChangeLister;
+    }
+
+    public TimeChangeLister getTimeChangeLister() {
+        return timeChangeLister;
+    }
+
+    public void setTimeChangeLister(TimeChangeLister timeChangeLister) {
+        this.timeChangeLister = timeChangeLister;
+    }
 }
 
