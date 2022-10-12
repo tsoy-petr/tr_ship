@@ -6,11 +6,17 @@ import com.example.demo.core.TabReport
 import com.example.demo.dataPorts.DataSourcePorts
 import com.example.demo.departure.DateTimeBox
 import com.example.demo.model.SeaPortDto
+import com.example.demo.settings.DataSettings
+import com.example.demo.utils.FormatHelper
 import com.example.demo.utils.FormsUtils
 import com.example.demo.utils.newActionListener
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 import javax.swing.JComboBox
 import javax.swing.JFormattedTextField
 import javax.swing.JLabel
+import kotlin.coroutines.EmptyCoroutineContext
 
 class NoonTab(
     private val noonPresenter: NoonPresenter
@@ -28,10 +34,16 @@ class NoonTab(
     private var positionFieldLatitude: PositionField
     private var positionFieldLongitude: PositionField
 
+    private val jlSeaPassagerDistance = JLabel("Sea Passage Distance (NM)")
+    private val tfSeaPassagerDistance = JFormattedTextField(FormatHelper.getSeaPassagerDistance_Formatter())
+
+    private val jlDistanceToGo = JLabel("Distance to go (NM)")
+    private val tfDistanceToGo = JFormattedTextField(FormatHelper.getDistanceToGo_Formatter())
+
     init {
 
         tfVoyNo.columns = 10
-
+        tfVoyNo.text = DataSettings.getInstance().readSettings().voyNo
         FormsUtils.initListTimeZone(cbTZ)
         cbTZ.newActionListener { newTZ, _ ->
             noonPresenter.setTZ(newTZ)
@@ -61,6 +73,7 @@ class NoonTab(
             setUnlocode = {},
             setLatitude = {},
             setLongitude = {})
+
         FormsUtils.initListPorts(
             DataSourcePorts.getInstance(),
             cbNextPort,
@@ -86,6 +99,29 @@ class NoonTab(
 
         positionFieldLatitude = PositionField(Position(Position.TypePosition.Latitude, 0, 0.0, Position.Hemisphere.N), noonPresenter::setPositionLatitude)
         positionFieldLongitude = PositionField(Position(Position.TypePosition.Longitude, 0, 0.0, Position.Hemisphere.E), noonPresenter::setPositionLongitude)
+
+        CoroutineScope(context = EmptyCoroutineContext).launch {
+            noonPresenter.state.collectLatest {state->
+                when (state){
+                    is State.AtSeeAdrift ->{
+
+                    }
+
+                    is State.ASeeUnderway ->{
+
+                    }
+
+                    is State.AtAnchor ->{
+
+                    }
+
+                    is State.InPort ->{
+
+                    }
+                }
+            }
+        }
+
 
         inflateUI()
 
@@ -122,5 +158,13 @@ class NoonTab(
             .nextEmptyCell()
             .addNextCellAlignRightGap(jlPositionLongitude)
             .addNextCellFillBoth(positionFieldLongitude)
+
+        insertEmptyRow()
+            .addNextCellAlignRightGap(jlSeaPassagerDistance)
+            .addNextCellFillBoth(tfSeaPassagerDistance)
+            .nextEmptyCell()
+            .addNextCellAlignRightGap(jlDistanceToGo)
+            .addNextCellFillBoth(tfDistanceToGo)
+
     }
 }

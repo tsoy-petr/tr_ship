@@ -7,7 +7,7 @@ import javax.swing.JLabel
 import javax.swing.JPanel
 
 abstract class TabReport: JPanel() {
-    val helper = GridBagHelper()
+    private val helper = GridBagHelper()
     init {
         layout = GridBagLayout()
     }

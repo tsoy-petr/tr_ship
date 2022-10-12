@@ -315,13 +315,15 @@ public class FormatHelper {
         return formatter;
     }
 
-    public static void setMask(JFormattedTextField tf) {
-//        try {
-//            //MaskFormatter dateMask = new MaskFormatter("####/##/##");
-//            MaskFormatter dateMask = new MaskFormatter("####");
-//            dateMask.install(tf);
-//        } catch (ParseException ex) {
-//            ex.printStackTrace();
-//        }
+    public static NumberFormatter getSeaPassagerDistance_Formatter() {
+        NumberFormat format = DecimalFormat.getInstance();
+        format.setMinimumFractionDigits(1);
+        format.setMaximumFractionDigits(1);
+        format.setMaximumIntegerDigits(10);
+
+        NumberFormatter formatter = new NumberFormatter(format);
+        formatter.setValueClass(Double.class);
+        formatter.setMinimum(0.0);
+        return formatter;
     }
 }

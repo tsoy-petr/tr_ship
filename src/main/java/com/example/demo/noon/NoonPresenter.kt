@@ -2,10 +2,13 @@ package com.example.demo.noon
 
 import com.example.demo.core.Position
 import com.example.demo.model.SeaPortDto
+import kotlinx.coroutines.flow.MutableStateFlow
 import java.time.LocalDate
 import java.time.LocalTime
 
 class NoonPresenter {
+
+    val state = MutableStateFlow<State>(State.AtSeeAdrift)
 
     private var noonResponse = NoonResponse();
 
@@ -43,4 +46,11 @@ class NoonPresenter {
 
     }
 
+}
+
+sealed class State {
+    object AtSeeAdrift : State()
+    object ASeeUnderway : State()
+    object AtAnchor : State()
+    object InPort : State()
 }
