@@ -16,7 +16,8 @@ class FormsUtils {
             terminalsCb: JComboBox<TerminalDto>? = null,
             timezoneCb: JComboBox<String>? = null,
             setPort: (SeaPortDto) -> Unit,
-            setUnlocode: (String) -> Unit, setLatitude: (Position) -> Unit, setLongitude: (Position) -> Unit
+            setUnlocode: (String) -> Unit, setLatitude: (Position) -> Unit, setLongitude: (Position) -> Unit,
+            setTerminal: (TerminalDto) -> Unit
         ) {
 
 
@@ -30,7 +31,7 @@ class FormsUtils {
                 }
             }
             if (firstPort != null) {
-                terminalsCb?.let { initListTerminals(it, firstPort, setLatitude, setLongitude) }
+                terminalsCb?.let { initListTerminals(it, firstPort, setLatitude, setLongitude, setTerminal) }
                 if (timezoneCb != null) {
                     timezoneCb.selectedItem = firstPort.timeZone
                 }
@@ -41,7 +42,8 @@ class FormsUtils {
 
         fun initListTerminals(
             cb: JComboBox<TerminalDto>, port: SeaPortDto, setLatitude: (Position) -> Unit,
-            setLongitude: (Position) -> Unit
+            setLongitude: (Position) -> Unit,
+            setTerminal: (TerminalDto) -> Unit
         ) {
             cb.removeAllItems()
             for (t in port.terminals) {
@@ -50,6 +52,7 @@ class FormsUtils {
             if (port.terminals.size > 0) {
                 val terminalDto = port.terminals[0]
                 cb.selectedItem = terminalDto
+                setTerminal.invoke(terminalDto)
                 setLatitude(terminalDto.latitude)
                 setLongitude(terminalDto.longitude)
             }

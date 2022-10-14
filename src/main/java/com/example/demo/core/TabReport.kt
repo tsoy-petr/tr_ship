@@ -31,4 +31,15 @@ abstract class TabReport: JPanel() {
         add(newComponent, helper.nextCell().fillBoth().get())
         return this
     }
+
+    fun addSpan(newComponent: Component): TabReport {
+        add(newComponent, helper.span().get())
+        return this
+    }
+
+    inline fun <reified C> castToType(currValue: Any?, setValueToPresenter: (C) -> Unit) {
+        if (currValue != null && currValue is C) {
+            setValueToPresenter(currValue as C)
+        }
+    }
 }

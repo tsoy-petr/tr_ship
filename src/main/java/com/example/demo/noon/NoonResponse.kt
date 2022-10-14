@@ -4,7 +4,7 @@ import com.example.demo.core.Position
 
 data class NoonResponse(
     val voyNo: String = "",
-    val timeZone: String = "",
+    val timeZone: String = "0",
     val dateLt: String = "",
     val timeLt: String = "",
     val status: String = "",
@@ -19,7 +19,7 @@ data class NoonResponse(
     val dateETA: String = "",
     val timeETA: String = "",
     val meMode: String? = null,
-    val meRPM: Long = 0,
+    val meRPM: Int = 0,
     val course: Int = 0,
     val hfoROB: Double = 0.0,
     val speed: Double = 0.0,

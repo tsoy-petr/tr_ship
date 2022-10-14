@@ -1,12 +1,8 @@
 package com.example.demo.utils;
 
-import javax.swing.*;
-import javax.swing.text.DefaultFormatterFactory;
-import javax.swing.text.MaskFormatter;
 import javax.swing.text.NumberFormatter;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
-import java.text.ParseException;
 
 public class FormatHelper {
 
@@ -52,8 +48,7 @@ public class FormatHelper {
         format.setMaximumFractionDigits(1);
         format.setMaximumIntegerDigits(10);
 
-        NumberFormatter formatter = new NumberFormatter(format);
-        return formatter;
+        return new NumberFormatter(format);
     }
 
     public static NumberFormatter getManeuveringDist_Formatter() {
@@ -62,8 +57,7 @@ public class FormatHelper {
         format.setMaximumFractionDigits(1);
         format.setMaximumIntegerDigits(7);
 
-        NumberFormatter formatter = new NumberFormatter(format);
-        return formatter;
+        return new NumberFormatter(format);
     }
 
     public static NumberFormatter getDegrees_latitude_Formatter() {
@@ -315,7 +309,7 @@ public class FormatHelper {
         return formatter;
     }
 
-    public static NumberFormatter getSeaPassagerDistance_Formatter() {
+    public static NumberFormatter getSeaPassageDistance_Formatter() {
         NumberFormat format = DecimalFormat.getInstance();
         format.setMinimumFractionDigits(1);
         format.setMaximumFractionDigits(1);
@@ -326,4 +320,97 @@ public class FormatHelper {
         formatter.setMinimum(0.0);
         return formatter;
     }
+
+    public static NumberFormatter getCourse_Formatter() {
+
+        NumberFormat format = DecimalFormat.getInstance();
+        format.setMinimumFractionDigits(0);
+        format.setMaximumFractionDigits(0);
+        format.setMaximumIntegerDigits(3);
+
+
+        NumberFormatter formatter = new NumberFormatter(format);
+        formatter.setValueClass(Integer.class);
+        formatter.setMinimum(0);
+        formatter.setMaximum(360);
+
+        return formatter;
+    }
+
+    public static NumberFormatter getHFO_ROB_Formatter() {
+        NumberFormat format = DecimalFormat.getInstance();
+        format.setMinimumFractionDigits(2);
+        format.setMaximumFractionDigits(2);
+        format.setMaximumIntegerDigits(4);
+
+        NumberFormatter formatter = new NumberFormatter(format);
+        formatter.setMinimum(0.0);
+        formatter.setMaximum(2000.0);
+        return formatter;
+    }
+
+    public static NumberFormatter getSpeed_Formatter() {
+        NumberFormat format = DecimalFormat.getInstance();
+        format.setMinimumFractionDigits(1);
+        format.setMaximumFractionDigits(1);
+        format.setMaximumIntegerDigits(2);
+
+        NumberFormatter formatter = new NumberFormatter(format);
+        formatter.setMinimum(0.0);
+        formatter.setMaximum(20.0);
+        return formatter;
+    }
+
+    public static NumberFormatter getWindScaleBeaufourt_Formatter() {
+        NumberFormat format = DecimalFormat.getInstance();
+        format.setMinimumFractionDigits(0);
+        format.setMaximumFractionDigits(0);
+        format.setMaximumIntegerDigits(2);
+
+        NumberFormatter formatter = new NumberFormatter(format);
+        formatter.setValueClass(Integer.class);
+        formatter.setMinimum(0);
+        formatter.setMaximum(12);
+        return formatter;
+    }
+
+    public static NumberFormatter getWindDirection_Formatter() {
+        NumberFormat format = DecimalFormat.getInstance();
+        format.setMinimumFractionDigits(0);
+        format.setMaximumFractionDigits(0);
+        format.setMaximumIntegerDigits(3);
+
+        NumberFormatter formatter = new NumberFormatter(format);
+        formatter.setValueClass(Integer.class);
+        formatter.setMinimum(0);
+        formatter.setMaximum(360);
+        return formatter;
+    }
+
+    public static NumberFormatter getSwellDirection_Formatter() {
+        NumberFormat format = DecimalFormat.getInstance();
+        format.setMinimumFractionDigits(0);
+        format.setMaximumFractionDigits(0);
+        format.setMaximumIntegerDigits(3);
+
+        NumberFormatter formatter = new NumberFormatter(format);
+        formatter.setValueClass(Integer.class);
+        formatter.setMinimum(0);
+        formatter.setMaximum(360);
+        return formatter;
+    }
+
+    public static NumberFormatter getSwellHeight_Formatter() {
+        NumberFormat format = DecimalFormat.getInstance();
+        format.setMinimumFractionDigits(0);
+        format.setMaximumFractionDigits(0);
+        format.setMaximumIntegerDigits(2);
+
+        NumberFormatter formatter = new NumberFormatter(format);
+        formatter.setValueClass(Integer.class);
+        formatter.setMinimum(0);
+        formatter.setMaximum(10);
+        return formatter;
+    }
+
 }

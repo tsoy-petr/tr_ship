@@ -159,7 +159,7 @@ public class DepartureTab extends JPanel {
         //новая строка
         helper.insertEmptyRow(this, 10);
 
-        SaveBtnPanel saveBtnPanel = new SaveBtnPanel();
+        SaveBtnPanel saveBtnPanel = new SaveBtnPanel(true, true);
         add(saveBtnPanel, helper.span().get());
         saveBtnPanel.setClickSave(() -> {
             ResultSendDeparture result = (new SendReportAndSaveService()).saveDeparture(
@@ -179,20 +179,6 @@ public class DepartureTab extends JPanel {
                 JOptionPane.showMessageDialog(jbSend, result.getMessage());
             }
         });
-
-//        final JButton jbSaveReport = new JButton("SAVE");
-//        jbSaveReport.setVisible(true);
-//        jbSaveReport.addActionListener(e -> {
-//
-//        });
-//        add(jbSaveReport, helper.fillHorizontally().get());
-//
-//        final JButton jbSaveAndSendMailApp = new JButton("SEND mail app");
-//        jbSaveAndSendMailApp.setVisible(true);
-//        jbSaveAndSendMailApp.addActionListener(e -> {
-//
-//        });
-//        add(jbSaveAndSendMailApp, helper.fillHorizontally().get());
 
     }
 

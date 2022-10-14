@@ -3,20 +3,44 @@ package com.example.demo.core;
 import com.example.demo.utils.GridBagHelper;
 import javax.swing.*;
 import java.awt.*;
+import java.util.BitSet;
 
 public class SaveBtnPanel extends JPanel {
 
+    private GridBagHelper helper = new GridBagHelper();
+    private Boolean saveVisible = true;
+    private Boolean saveAndSaveVisible = true;
     private ClickSave clickSave;
     private ClickSaveAndSave clickSaveAndSave;
 
+
+    public SaveBtnPanel(Boolean saveVisible, Boolean saveAndSaveVisible) {
+        this();
+        this.saveVisible = saveVisible;
+        this.saveAndSaveVisible = saveAndSaveVisible;
+        initView();
+    }
     public SaveBtnPanel() {
-
         super();
-
-        GridBagHelper helper = new GridBagHelper();
-
         this.setLayout(new GridBagLayout());
+    }
 
+    private void initView() {
+        if (saveVisible) {
+            initSaveBtn();
+        }
+
+        if (saveAndSaveVisible) {
+
+            helper.nextEmptyCell(this, 50);
+            helper.nextCell().fillHorizontally();
+
+            initSaveAndSendBtn();
+        }
+    }
+
+
+    private void initSaveBtn() {
         final JButton jbSaveReport = new JButton("SAVE");
         jbSaveReport.setVisible(true);
         jbSaveReport.addActionListener(e -> {
@@ -25,10 +49,9 @@ public class SaveBtnPanel extends JPanel {
             }
         });
         add(jbSaveReport, helper.nextCell().fillHorizontally().get());
+    }
 
-        helper.nextEmptyCell(this, 50);
-        helper.nextCell().fillHorizontally();
-
+    private void initSaveAndSendBtn() {
         final JButton jbSaveAndSendMailApp = new JButton("SEND AND SAVE");
         jbSaveAndSendMailApp.setVisible(true);
         jbSaveAndSendMailApp.addActionListener(e -> {
@@ -37,7 +60,6 @@ public class SaveBtnPanel extends JPanel {
             }
         });
         add(jbSaveAndSendMailApp, helper.fillHorizontally().get());
-
     }
 
     public void setClickSave(ClickSave clickSave) {
