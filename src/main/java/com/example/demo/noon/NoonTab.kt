@@ -25,7 +25,7 @@ class NoonTab(
     private val noonPresenter: NoonPresenter
 ) : TabReport() {
 
-    private val actionChangeTerminal = ActionListener{e: ActionEvent ->
+    private val actionChangeTerminal = ActionListener{_: ActionEvent ->
         (cbTerminal.selectedItem )?.let {
             noonPresenter.setTerminal(it as TerminalDto)
         }
@@ -279,7 +279,7 @@ class NoonTab(
                 } else if (isUploadSuccess) {
 
                 } else if (isUploadError) {
-
+                    JOptionPane.showMessageDialog(saveBtnPanel, (state as State.UploadError).message)
                 }
             }
         }

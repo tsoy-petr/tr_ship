@@ -15,7 +15,7 @@ import kotlin.coroutines.CoroutineContext
  */
 abstract class UseCase<out Type, in Params>(
     private val backgroundContext: CoroutineContext = Dispatchers.IO,
-    private val foregroundContext: CoroutineContext = Dispatchers.Main,
+    private val foregroundContext: CoroutineContext = Dispatchers.Default,
 ) where Type : Any {
 
     private var parentJob: Job = Job()
@@ -24,10 +24,10 @@ abstract class UseCase<out Type, in Params>(
 
     operator fun invoke(
         params: Params,
-        scope: CoroutineScope,
         onResult: (Either<Failure, Type>) -> Unit = {},
     ) {
-        scope.launch(foregroundContext) {
+
+        GlobalScope.launch(foregroundContext) {
             val deferred = async(backgroundContext) {
                 run(params)
             }

@@ -3,17 +3,11 @@ package com.example.demo.noon
 import com.example.demo.core.Position
 import com.example.demo.core.SaveRepository
 import com.example.demo.core.exception.Failure
-import com.example.demo.core.functional.Either
-import com.example.demo.core.functional.map
 import com.example.demo.departure.MEMode
 import com.example.demo.model.SeaPortDto
 import com.example.demo.model.TerminalDto
 import com.example.demo.noon.Status.*
 import com.example.demo.settings.SettingsPresenter
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.MainCoroutineDispatcher
-import kotlinx.coroutines.MainScope
-
 import kotlinx.coroutines.flow.MutableStateFlow
 import java.time.LocalDate
 import java.time.LocalTime
@@ -167,7 +161,7 @@ class NoonPresenter {
         val useCase = NoonSaveUseCase()
         useCase.invoke(
             NoonSaveUseCase.Params(SettingsPresenter().readSettings(), noonResponse, SaveRepository()),
-            MainScope()
+
 
         ) {
             it.fold(::handleFailure, ::handleSuccess)

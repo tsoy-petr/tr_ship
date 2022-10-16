@@ -27,11 +27,3 @@ fun <E : Any?> JComboBox<E>.initItems(items: List<E>, actionPresenter: (E) -> Un
     this.selectedItem = items.first()
     actionPresenter(items.first())
 }
-
-//inline fun <reified E>JFormattedTextField.setDocumentChangeListener(crossinline execute: (E, action: () -> Unit) -> Unit) {
-//    this.document.addDocumentListener(FieldListener {
-//        if (this.value != null && this.value is E) {
-//            execute(this.value as E)
-//        }
-//    })
-//}

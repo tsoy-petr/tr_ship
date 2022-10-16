@@ -222,14 +222,6 @@ public class HelloApplication {
         panel.add(sep, gbc);
     }
 
-    private JPanel initSettingsTab() {
-
-        JPanel tab = new JPanel();
-
-        return tab;
-
-    }
-
     public static void main(String[] args) {
 
         HelloApplication app = new HelloApplication();
