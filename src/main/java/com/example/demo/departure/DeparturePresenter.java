@@ -1,20 +1,37 @@
 package com.example.demo.departure;
 
-import com.example.demo.core.Position;
+import com.example.demo.core.*;
 import com.example.demo.dataPorts.DataSourcePorts;
 import com.example.demo.model.DepartureResponse;
 import com.example.demo.model.SeaPortDto;
 import com.example.demo.model.SettingsEmailDto;
 import com.example.demo.model.TerminalDto;
 import com.example.demo.settings.SettingsPresenter;
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.Reader;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DeparturePresenter {
+import static com.example.demo.utils.Common.isEmpty;
+
+public class DeparturePresenter implements ValidatorResponse, LoadFromFile, RoutingControllingTabs {
+
+
+    private DepartureDataChangeListner departureDataChangeListner;
+
+    private JTabbedPaneRouting paneRouting;
 
     private SeaPortDto port;
     private String unlocode;
@@ -53,13 +70,13 @@ public class DeparturePresenter {
 
     private double maneuveringDist;
 
-    private Position latitude;
-    private Position longitude;
+    private Position latitude = new Position(Position.TypePosition.Latitude, 0, 0.0, Position.Hemisphere.N);
+    private Position longitude = new Position(Position.TypePosition.Longitude, 0, 0.0, Position.Hemisphere.E);
 
     private final DataSourcePorts dataSourcePorts = DataSourcePorts.getInstance();
 
     private long meRPM;
-    private MEMode meMode;
+    private MEMode meMode = MEMode.ECO;
     private LocalDate ETA_Next_Port_date = LocalDate.MIN;
     private LocalTime ETA_Next_Port_time = LocalTime.MIN;
     private double distanceToGo;
@@ -86,18 +103,17 @@ public class DeparturePresenter {
     private int liveReefers;
 
 
-    public DeparturePresenter() {
-    }
+    public DeparturePresenter() {}
 
-    public void initListPorts(JComboBox<SeaPortDto> cb, JComboBox<TerminalDto> terminalsCb, JComboBox<String> timezoneCb) {
+    public void initListPorts(JComboBox<SeaPortDto> cbPort, JComboBox<TerminalDto> terminalsCb, JComboBox<String> timezoneCb) {
 
-        cb.removeAllItems();
+        cbPort.removeAllItems();
         SeaPortDto firstPort = null;
 
         List<SeaPortDto> ports = dataSourcePorts.getPorts();
         for (SeaPortDto port :
                 ports) {
-            cb.addItem(port);
+            cbPort.addItem(port);
             if (firstPort == null) {
                 firstPort = port;
             }
@@ -160,6 +176,35 @@ public class DeparturePresenter {
         }
     }
 
+    private String dateToString(LocalDate date) {
+        if (date != null && date != LocalDate.MIN) {
+            return date.toString();
+        } else return "";
+    }
+
+    private String timeToString(LocalTime time) {
+        if (time != null && time != LocalTime.MIN) {
+            return time.toString();
+        } else return "";
+    }
+
+    public void reloadFromJson(JsonElement json) {
+
+        Gson gson = new Gson();
+        DepartureResponse response = null;
+        try {
+            response = gson.fromJson(json, DepartureResponse.class);
+        } catch (JsonSyntaxException e) {
+
+        }
+
+        if (response != null
+                && departureDataChangeListner != null) {
+            departureDataChangeListner.change(response);
+        }
+
+    }
+
     public DepartureResponse mapToModelResponse() {
 
         DepartureResponse response = new DepartureResponse();
@@ -168,52 +213,43 @@ public class DeparturePresenter {
         SettingsEmailDto settings = settingsPresenter.readSettings();
         response.setImo(settings.getImo());
 
-        response.setTimeZone(timeZoneGMT);
+        response.setTimeZone(this.timeZoneGMT);
 
         response.setDeparture(this.departure);
 
-        if (this.dateStatus1 != null) {
-            response.setDateStatus1(this.dateStatus1.toString());
-        }
-
-        if (this.timeStatus1 != null) {
-            response.setTimeStatus1(this.timeStatus1.toString());
-        }
-
         response.setUnlocode(this.unlocode);
-        response.setVoyNo(settings.getVoyNo());
+        response.setVoyNo(getVoyNo());
 
-        if (terminal != null){
+        if (terminal != null) {
             response.setTerminalUUID(terminal.getUid());
         } else {
             response.setTerminalUUID("");
         }
 
-        response.setDateStatus1(dateStatus1.toString());
-        response.setTimeStatus1(timeStatus1.toString());
+        response.setDateStatus1(dateToString(dateStatus1));
+        response.setTimeStatus1(timeToString(timeStatus1));
 
-        response.setDatePob(datePob.toString());
-        response.setTimePob(timePob.toString());
+        response.setDatePob(dateToString(datePob));
+        response.setTimePob(timeToString(timePob));
 
         response.setLSHFOROB_S1(LSHFOROB_S1);
 
-        response.setDatePilotOff(datePilotOff.toString());
-        response.setTimePilotOff(timePilotOff.toString());
+        response.setDatePilotOff(dateToString(datePilotOff));
+        response.setTimePilotOff(timeToString(timePilotOff));
 
         response.setMGO_01_ROB_S1(MGO_01_ROB_S1);
         response.setMGO_05_ROB_S1(MGO_05_ROB_S1);
 
-        response.setDateTugMakeFast(dateTugMakeFast.toString());
-        response.setTimeTugMakeFast(timeTugMakeFast.toString());
+        response.setDateTugMakeFast(dateToString(dateTugMakeFast));
+        response.setTimeTugMakeFast(timeToString(timeTugMakeFast));
 
-        response.setDateTugCastOff(dateTugCastOff.toString());
-        response.setTimeTugCastOff(timeTugCastOff.toString());
+        response.setDateTugCastOff(dateToString(dateTugCastOff));
+        response.setTimeTugCastOff(timeToString(timeTugCastOff));
 
         response.setNoOfTugs(noOfTugs);
 
-        //
-        response.setDateStatus2(dateStatus1.toString());
-        response.setTimeStatus2(timeStatus2.toString());
+        response.setDateStatus2(dateToString(dateStatus1));
+        response.setTimeStatus2(timeToString(timeStatus2));
 
         response.setManeuveringDist(maneuveringDist);
 
@@ -222,15 +258,20 @@ public class DeparturePresenter {
 
         response.setMeRPM(meRPM);
 
-        if (meMode != null){
+        if (meMode != null) {
             response.setMeMode(meMode.toString());
-        }
+        } else response.setMeMode("");
 
-        response.setUnlocodeLastPort(unlocodeLastPort);
-        response.setUnlocodeNextPort(unlocodeNextPort);
+        if (unlocodeLastPort != null) {
+            response.setUnlocodeLastPort(unlocodeLastPort);
+        } else response.setUnlocodeLastPort("");
 
-        response.setETA_Next_Port_date(ETA_Next_Port_date.toString());
-        response.setETA_Next_Port_time(ETA_Next_Port_time.toString());
+        if (unlocodeNextPort != null) {
+            response.setUnlocodeNextPort(unlocodeNextPort);
+        } else response.setUnlocodeNextPort("");
+
+        response.setETA_Next_Port_date(dateToString(ETA_Next_Port_date));
+        response.setETA_Next_Port_time(timeToString(ETA_Next_Port_time));
 
         response.setDistanceToGo(distanceToGo);
 
@@ -248,7 +289,7 @@ public class DeparturePresenter {
         response.setContainerEmpty_20(containerEmpty_20);
 
         response.setContainerLaden_40(containerLaden_40);
-        response.setContainerEmpty_20(containerEmpty_40);
+        response.setContainerEmpty_40(containerEmpty_40);
 
         response.setDraftFWD(draftFWD);
         response.setDraftAft(draftAft);
@@ -329,6 +370,7 @@ public class DeparturePresenter {
 
     public void setPort(SeaPortDto port) {
         this.port = port;
+        this.unlocode = port.getUnlocode();
     }
 
     public String getUnlocode() {
@@ -685,6 +727,106 @@ public class DeparturePresenter {
 
     public void setTimeZoneGMT(String timeZoneGMT) {
         this.timeZoneGMT = timeZoneGMT;
+    }
+
+    @Override
+    public void validateResponse(@NotNull IsValid isValid, @NotNull IsNotValid isNotValid) {
+        DepartureResponse response = mapToModelResponse();
+        SettingsEmailDto settings = new SettingsPresenter().readSettings();
+        if (isEmpty(response.getVoyNo())
+                || isEmpty(response.getImo())
+                || isEmpty(response.getUnlocode())
+                || (isEmpty(response.getTimeZone()) || response.getTimeZone().equals("0"))
+                || isEmpty(response.getDateStatus1())
+                || isEmpty(response.getTimeStatus1())
+                || isEmpty(response.getDateStatus2())
+                || isEmpty(response.getTimeStatus2())
+                || !response.getLatitude().isValidate()
+                || !response.getLongitude().isValidate()
+                || isEmpty(response.getTerminalUUID())
+        ) {
+
+            ArrayList<NoValidData> noValidData = new ArrayList<>();
+
+            if (isEmpty(response.getVoyNo())) {
+                noValidData.add(NoValidData.VoyNo);
+            }
+
+            if (isEmpty(response.getUnlocode())) {
+                noValidData.add(NoValidData.Unlocode);
+            }
+
+            if ((isEmpty(response.getTimeZone()) || response.getTimeZone().equals("0"))) {
+                noValidData.add(NoValidData.TimeZone);
+            }
+
+            if (isEmpty(response.getDateStatus1())) {
+                noValidData.add(NoValidData.DateTimeStatus_1);
+            }
+
+            if (isEmpty(response.getDateStatus2())) {
+                noValidData.add(NoValidData.DateTimeStatus_2);
+            }
+
+            if (isEmpty(response.getTimeStatus1())) {
+                noValidData.add(NoValidData.DateTimeStatus_1);
+            }
+
+            if (isEmpty(response.getTimeStatus2())) {
+                noValidData.add(NoValidData.DateTimeStatus_2);
+            }
+
+            if (!response.getLatitude().isValidate()) {
+                noValidData.add(NoValidData.Latitude_1);
+            }
+
+            if (!response.getLongitude().isValidate()) {
+                noValidData.add(NoValidData.Longitude_1);
+            }
+
+            String mess = isNotValid.message;
+            if (isEmpty(settings.getImo())) {
+                mess = "Vessel IMO not filled. \n" + mess;
+            }
+
+            if (isEmpty(response.getTerminalUUID())) noValidData.add(NoValidData.Terminal);
+
+            isNotValid.isNotValid(mess, noValidData);
+        } else isValid.valid();
+    }
+
+    @Override
+    public void load(@NotNull File file) {
+
+        String nameTab = DefineTabName.INSTANCE.define(file.getName());
+
+        if (!nameTab.isEmpty()) {
+            try (Reader reader = Files.newBufferedReader(file.toPath(),
+                    StandardCharsets.UTF_8)) {
+
+                JsonParser parser = new JsonParser();
+                JsonElement tree = parser.parse(reader);
+
+                if (tree.isJsonObject()) {
+
+                    if (paneRouting != null) {
+                        paneRouting.selectTabWithData("DEPARTURE", tree);
+                    }
+                }
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else {
+            if (departureDataChangeListner != null) {
+                departureDataChangeListner.errorChange("Report type not defined!");
+            }
+        }
+    }
+
+    @Override
+    public void rout() {
+
     }
 
     public enum DepartureState {

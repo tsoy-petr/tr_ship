@@ -3,18 +3,18 @@ package com.example.demo.service;
 import com.example.demo.core.model.ResultSendDeparture;
 import com.example.demo.model.DepartureResponse;
 import com.example.demo.model.SettingsEmailDto;
-import com.example.demo.settings.SettingsPresenter;
 import com.example.demo.utils.Common;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+
 import java.awt.*;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.*;
-import java.nio.charset.StandardCharsets;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 
 public class SendReportAndSaveService {
@@ -35,7 +35,7 @@ public class SendReportAndSaveService {
             return new ResultSendDeparture(false, "Path to save reports not configured!");
         }
 
-        if (! Common.fileExists(folderForSavingReports)) {
+        if (!Common.fileExists(folderForSavingReports)) {
             return new ResultSendDeparture(false, "Path to save file does not exist!");
         }
 
@@ -84,13 +84,56 @@ public class SendReportAndSaveService {
 
     }
 
+    public ResultSendDeparture sendDepartureOnMailApp(SettingsEmailDto settingsEmailDto, String body, String nameReport) {
+        Desktop desktop = Desktop.getDesktop();
+        if (Desktop.isDesktopSupported() && desktop.isSupported(Desktop.Action.MAIL)) {
+            try {
+
+                String subject = nameReport + " (" + settingsEmailDto.getImo() + ")";
+
+                String cc = "";
+                ArrayList<String> toCopy = new ArrayList<>();
+                if (!settingsEmailDto.getEmailCopy1().isEmpty()){
+                    toCopy.add(settingsEmailDto.getEmailCopy1());
+                }
+                if (!settingsEmailDto.getEmailCopy2().isEmpty()){
+                    toCopy.add(settingsEmailDto.getEmailCopy2());
+                }
+                if (!settingsEmailDto.getEmailCopy3().isEmpty()){
+                    toCopy.add(settingsEmailDto.getEmailCopy3());
+                }
+                if (!toCopy.isEmpty()) {
+                    cc = "?cc=";
+                    String ccSeparated = toCopy.toString();
+                    ccSeparated = ccSeparated.replace("[", "")
+                                .replace("]", "")
+                            .replace(" ", "");
+                    cc += ccSeparated;
+                    cc += "&";
+                } else cc = "?";
+
+                desktop.mail(new URI(
+                        "mailto:" + settingsEmailDto.getServerEmail()
+                                + cc
+                                + "subject=" + Common.urlEncode(subject)
+                                + "&body=" + Common.urlEncode(body)));
+
+                return new ResultSendDeparture(true, "");
+
+            } catch (IOException | URISyntaxException ioe) {
+                return new ResultSendDeparture(false, ioe.getMessage());
+            }
+        } else {
+            return new ResultSendDeparture(false, "desktop doesn't support mailto; mail is dead anyway ");
+        }
+    }
+
     private ResultSendDeparture sendDeparture(SettingsEmailDto settingsEmailDto, DepartureResponse response, ResultSendDeparture reportSave) {
 
         Desktop desktop;
 
         if (Desktop.isDesktopSupported()
                 && (desktop = Desktop.getDesktop()).isSupported(Desktop.Action.MAIL)) {
-
 
 
             URI mailto = null;
@@ -113,17 +156,17 @@ public class SendReportAndSaveService {
 //                }
 
                 String uri = "mailTo:test@gmail.com" + "?subject=" + "TEST%20SUBJECT"
-                              + "&body=" +
-                        Common.urlEncode( "<table border=\"1\">\n" +
-                        "   <tr>\n" +
-                        "    <th>Ячейка 1</th>\n" +
-                        "    <th>Ячейка 2</th>\n" +
-                        "   </tr>\n" +
-                        "   <tr>\n" +
-                        "    <td>Ячейка 3</td>\n" +
-                        "    <td>Ячейка 4</td>\n" +
-                        "  </tr>\n" +
-                        " </table>");
+                        + "&body=" +
+                        Common.urlEncode("<table border=\"1\">\n" +
+                                "   <tr>\n" +
+                                "    <th>Ячейка 1</th>\n" +
+                                "    <th>Ячейка 2</th>\n" +
+                                "   </tr>\n" +
+                                "   <tr>\n" +
+                                "    <td>Ячейка 3</td>\n" +
+                                "    <td>Ячейка 4</td>\n" +
+                                "  </tr>\n" +
+                                " </table>");
 //                        Common.urlEncode("C:/Users/bildovich/Documents/Report_Departure_2022_09_30_10_30_22.json");
 
                 String cmd = "cmd.exe /c start " + uri + "";
@@ -149,10 +192,7 @@ public class SendReportAndSaveService {
             }
 
 
-
-
-        }
-        else {
+        } else {
             return new ResultSendDeparture(false, "desktop doesn't support mailto; mail is dead anyway ");
         }
 

@@ -57,7 +57,9 @@ public class FormatHelper {
         format.setMaximumFractionDigits(1);
         format.setMaximumIntegerDigits(7);
 
-        return new NumberFormatter(format);
+        NumberFormatter formatter = new NumberFormatter(format);
+        formatter.setValueClass(Double.class);
+        return formatter;
     }
 
     public static NumberFormatter getDegrees_latitude_Formatter() {
@@ -413,4 +415,15 @@ public class FormatHelper {
         return formatter;
     }
 
+    public static NumberFormatter getReceivedFuel_Formatter() {
+        NumberFormat format = DecimalFormat.getInstance();
+        format.setMinimumFractionDigits(2);
+        format.setMaximumFractionDigits(2);
+        format.setMaximumIntegerDigits(15);
+
+        NumberFormatter formatter = new NumberFormatter(format);
+        formatter.setValueClass(Double.class);
+        formatter.setMinimum(0.0);
+        return formatter;
+    }
 }

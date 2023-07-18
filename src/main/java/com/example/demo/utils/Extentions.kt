@@ -27,3 +27,7 @@ fun <E : Any?> JComboBox<E>.initItems(items: List<E>, actionPresenter: (E) -> Un
     this.selectedItem = items.first()
     actionPresenter(items.first())
 }
+
+fun MutableMap<String, String>.appendLine(key: String, text: String) {
+    this[key] = text + "\n"
+}

@@ -1,5 +1,7 @@
 package com.example.demo.utils
 
+import com.example.demo.bunker.StatusShip
+import com.example.demo.bunker.TypeOfFuel
 import com.example.demo.core.Position
 import com.example.demo.dataPorts.DataSourcePorts
 import com.example.demo.model.SeaPortDto
@@ -72,6 +74,19 @@ class FormsUtils {
                 cb.addItem("-$i")
             }
         }
+
+        fun iniListStatusShip(cb: JComboBox<StatusShip>) {
+            cb.addItem(StatusShip.AT_ANCHOR)
+            cb.addItem(StatusShip.AT_BERTH)
+            cb.addItem(StatusShip.AT_DRIFT)
+        }
+
+        fun iniListTypesOfFuel(cb: JComboBox<TypeOfFuel>) {
+            cb.addItem(TypeOfFuel.LSHFO)
+            cb.addItem(TypeOfFuel.MGO_0_1)
+            cb.addItem(TypeOfFuel.MGO_0_5)
+        }
+
     }
 
 }

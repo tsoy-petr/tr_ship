@@ -39,6 +39,27 @@ public class DateTimeBox extends JPanel {
 
     }
 
+    public void resetTime() {
+        date.setDate(null);
+        timePicker.setTime(null);
+    }
+
+    public void setDateTime(String dateStr, String timeStr) {
+
+        LocalDate localDate = null;
+        LocalTime localTime = null;
+
+        if (!dateStr.isEmpty()) {
+            localDate = LocalDate.parse(dateStr);
+        }
+
+        if (!timeStr.isEmpty()) {
+            localTime = LocalTime.parse(timeStr);
+        }
+        date.setDate(localDate);
+        timePicker.setTime(localTime);
+    }
+
     private void setupFields() {
 
         setLayout(new FlowLayout());

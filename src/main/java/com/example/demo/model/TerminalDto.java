@@ -3,10 +3,12 @@ package com.example.demo.model;
 import com.example.demo.core.Position;
 
 import java.io.Serializable;
+import java.util.Objects;
 import java.util.UUID;
 
 public class TerminalDto implements Serializable {
 
+    private static final long serialVersionUID = 1L;
     private String title;
     private Position latitude;
     private Position longitude;
@@ -67,5 +69,20 @@ public class TerminalDto implements Serializable {
     @Override
     public String toString() {
         return title;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        TerminalDto that = (TerminalDto) o;
+        return Objects.equals(title, that.title)
+                && Objects.equals(latitude, that.latitude)
+                && Objects.equals(longitude, that.longitude);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(title, latitude, longitude);
     }
 }

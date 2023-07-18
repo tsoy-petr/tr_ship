@@ -1,6 +1,5 @@
 package com.example.demo.settings;
 
-import com.example.demo.dataPorts.DataSourcePorts;
 import com.example.demo.model.SettingsEmailDto;
 
 import java.io.File;
@@ -27,7 +26,12 @@ public class DataSettings {
     private final String PROP_SERVER_EMAIL = "serverEmail";
     private final String PROP_FOLDER_FOR_SAVING_REPORTS = "folderForSavingReports";
 
-    private DataSettings(){}
+    private final String PROP_KEY_EMAIL_COPY1_ADDRESS = "emailAddressCopy1";
+    private final String PROP_KEY_EMAIL_COPY2_ADDRESS = "emailAddressCopy2";
+    private final String PROP_KEY_EMAIL_COPY3_ADDRESS = "emailAddressCopy3";
+
+    private DataSettings() {
+    }
 
     public static DataSettings getInstance() {
         DataSettings localInstance = instance;
@@ -56,6 +60,9 @@ public class DataSettings {
         props.setProperty(PROP_KEY_VOY_NO, settingsEmail.getVoyNo());
         props.setProperty(PROP_SERVER_EMAIL, settingsEmail.getServerEmail());
         props.setProperty(PROP_FOLDER_FOR_SAVING_REPORTS, settingsEmail.getFolderForSavingReports());
+        props.setProperty(PROP_KEY_EMAIL_COPY1_ADDRESS, settingsEmail.getEmailCopy1());
+        props.setProperty(PROP_KEY_EMAIL_COPY2_ADDRESS, settingsEmail.getEmailCopy2());
+        props.setProperty(PROP_KEY_EMAIL_COPY3_ADDRESS, settingsEmail.getEmailCopy3());
         try {
             FileOutputStream output = new FileOutputStream(getSettingFileName());
             props.store(output, "Saved settings");
@@ -98,6 +105,10 @@ public class DataSettings {
         String serverEmail = props.getProperty(PROP_SERVER_EMAIL, "");
         String folderForSavingReports = props.getProperty(PROP_FOLDER_FOR_SAVING_REPORTS, "");
 
+        String emailAddressCopy1 = props.getProperty(PROP_KEY_EMAIL_COPY1_ADDRESS, "");
+        String emailAddressCopy2 = props.getProperty(PROP_KEY_EMAIL_COPY2_ADDRESS, "");
+        String emailAddressCopy3 = props.getProperty(PROP_KEY_EMAIL_COPY3_ADDRESS, "");
+
         int port = 0;
         try {
             port = Integer.parseInt(smtpPort);
@@ -105,7 +116,7 @@ public class DataSettings {
             ex.printStackTrace();
         }
 
-        return new SettingsEmailDto(smtpServer, port, emailAddress, user, emailPass, imo, voyNo, serverEmail, folderForSavingReports);
+        return new SettingsEmailDto(smtpServer, port, emailAddress, user, emailPass, imo, voyNo, serverEmail, folderForSavingReports, emailAddressCopy1, emailAddressCopy2, emailAddressCopy3);
     }
 
     private String getSettingFileName() {
@@ -115,7 +126,7 @@ public class DataSettings {
         return homeDir + File.separator + "transitSettings.properties";
     }
 
-    public interface SettingsChangeListener{
+    public interface SettingsChangeListener {
         void change(SettingsEmailDto settingsEmail);
     }
 }

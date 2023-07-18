@@ -32,11 +32,12 @@ public class DataSourcePorts {
     }
     public List<SeaPortDto> getPorts() {
 
-        List result = new ArrayList();
+        ArrayList result = new ArrayList();
         try (FileInputStream fis = new FileInputStream(getSettingFileName());
              ObjectInputStream ois = new ObjectInputStream(fis)) {
-            result = (List) ois.readObject();
+            result = (ArrayList) ois.readObject();
         } catch (Exception ignore) {
+            System.out.println(ignore);
         }
         return result;
 

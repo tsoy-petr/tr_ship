@@ -4,10 +4,11 @@ package com.example.demo.model;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class SeaPortDto implements Serializable
 {
-
+    private static final long serialVersionUID = 1L;
     private String title;
     private String unlocode;
     private String timeZone;
@@ -73,8 +74,37 @@ public class SeaPortDto implements Serializable
         this.terminals = terminals;
     }
 
+    public TerminalDto findTerminalByUUID(String uuid) {
+        for (TerminalDto terminal:
+             terminals) {
+            if(terminal.getUid().equals(uuid)) {
+                return terminal;
+            }
+        }
+        return null;
+    }
     @Override
     public String toString() {
         return this.unlocode;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        }
+
+        if (obj == null || obj.getClass() != this.getClass()) {
+            return false;
+        }
+
+        SeaPortDto c = (SeaPortDto) obj;
+
+        return unlocode.equals(c.getUnlocode());
+    }
+
+    @Override
+    public int hashCode() {
+        return unlocode.hashCode();
     }
 }

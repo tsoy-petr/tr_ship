@@ -1,6 +1,13 @@
 package com.example.demo;
 
 
+import com.example.demo.anchorDrift.AnchorDriftPresenter;
+import com.example.demo.anchorDrift.AnchorDriftTab;
+import com.example.demo.arrival.ArrivalPresenter;
+import com.example.demo.arrival.ArrivalTab;
+import com.example.demo.bunker.BunkerPresenter;
+import com.example.demo.bunker.BunkerTab;
+import com.example.demo.core.JTabbedPaneRouting;
 import com.example.demo.dataPorts.DataPortsPresenter;
 import com.example.demo.dataPorts.DataPortsTab;
 import com.example.demo.departure.DeparturePresenter;
@@ -40,9 +47,10 @@ public class HelloApplication {
 
         JFrame frame = new JFrame("Tranzit");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(950, 1000);
+        frame.setSize(1100, 1000);
 
-        JTabbedPane tabbedPane = new JTabbedPane();
+        JTabbedPaneRouting tabbedPane = new JTabbedPaneRouting();
+
         tabbedPane.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
         tabbedPane.addChangeListener(new ChangeListener() {
             @Override
@@ -56,8 +64,11 @@ public class HelloApplication {
 
             }
         });
-        tabbedPane.addTab("DEPARTURE", initDer());
-        tabbedPane.addTab("NOON", initNoonReport());
+        tabbedPane.addTab("DEPARTURE", initDer(tabbedPane));
+        tabbedPane.addTab("NOON", initNoonReport(tabbedPane));
+        tabbedPane.addTab("ANCHOR/DRIFT", initAnchorDriftReport(tabbedPane));
+        tabbedPane.addTab("ARRIVAL", initArrivalReport(tabbedPane));
+        tabbedPane.addTab("BUNKER", initBunkerReport(tabbedPane));
         tabbedPane.addTab("SETTINGS", initSett());
         tabbedPane.addTab("Data ports", initDataPorts());
         frame.add(BorderLayout.CENTER, new JScrollPane(tabbedPane));
@@ -66,17 +77,39 @@ public class HelloApplication {
 
     }
 
-    private JPanel initDer() {
+    private JPanel initDer(JTabbedPaneRouting paneRouting) {
+        DeparturePresenter departurePresenter = new DeparturePresenter();
         JPanel tab = new JPanel();
         tab.setLayout(new FlowLayout());
-        tab.add(new DepartureTab(new DeparturePresenter()));
+        tab.add(new DepartureTab(departurePresenter, paneRouting));
         return tab;
     }
 
-    private JPanel initNoonReport() {
+    private JPanel initNoonReport(JTabbedPaneRouting paneRouting) {
         JPanel tab = new JPanel();
         tab.setLayout(new FlowLayout());
-        tab.add(new NoonTab(new NoonPresenter()));
+        tab.add(new NoonTab(new NoonPresenter(paneRouting)));
+        return tab;
+    }
+
+    private JPanel initAnchorDriftReport(JTabbedPaneRouting paneRouting) {
+        JPanel tab = new JPanel();
+        tab.setLayout(new FlowLayout());
+        tab.add(new AnchorDriftTab(new AnchorDriftPresenter(paneRouting)));
+        return tab;
+    }
+
+    private JPanel initArrivalReport(JTabbedPaneRouting paneRouting) {
+        JPanel tab = new JPanel();
+        tab.setLayout(new FlowLayout());
+        tab.add(new ArrivalTab(new ArrivalPresenter(paneRouting)));
+        return tab;
+    }
+
+    private JPanel initBunkerReport(JTabbedPaneRouting paneRouting) {
+        JPanel tab = new JPanel();
+        tab.setLayout(new FlowLayout());
+        tab.add(new BunkerTab(new BunkerPresenter(paneRouting)));
         return tab;
     }
 

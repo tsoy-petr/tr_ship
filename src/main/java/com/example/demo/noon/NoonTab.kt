@@ -1,16 +1,22 @@
 package com.example.demo.noon
 
 import com.example.demo.core.*
+import com.example.demo.core.JComboBoxExtension.setSelectedItem
 import com.example.demo.dataPorts.DataSourcePorts
 import com.example.demo.departure.DateTimeBox
 import com.example.demo.departure.MEMode
+import com.example.demo.model.ComponentKey
 import com.example.demo.model.SeaPortDto
 import com.example.demo.model.TerminalDto
+import com.example.demo.noon.Status.valueOf
 import com.example.demo.settings.DataSettings
 import com.example.demo.utils.FormatHelper
 import com.example.demo.utils.FormsUtils
 import com.example.demo.utils.initItems
 import com.example.demo.utils.newActionListener
+import com.google.gson.Gson
+import com.google.gson.JsonElement
+import com.google.gson.JsonSyntaxException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -19,14 +25,15 @@ import java.awt.Font
 import java.awt.event.ActionEvent
 import java.awt.event.ActionListener
 import javax.swing.*
+import javax.swing.filechooser.FileNameExtensionFilter
 import kotlin.coroutines.EmptyCoroutineContext
 
 class NoonTab(
     private val noonPresenter: NoonPresenter
 ) : TabReport() {
 
-    private val actionChangeTerminal = ActionListener{_: ActionEvent ->
-        (cbTerminal.selectedItem )?.let {
+    private val actionChangeTerminal = ActionListener { _: ActionEvent ->
+        (cbTerminal.selectedItem)?.let {
             noonPresenter.setTerminal(it as TerminalDto)
         }
     }
@@ -98,23 +105,32 @@ class NoonTab(
     private val jlNote = JLabel("Note")
     private val tfNote = JTextArea(3, 25)
 
-    private val saveBtnPanel = SaveBtnPanel(true, false)
+    private val saveBtnPanel = SaveBtnPanel(true, false, true, true)
 
     init {
 
         tfVoyNo.columns = 10
         tfVoyNo.text = DataSettings.getInstance().readSettings().voyNo
         noonPresenter.setVoyNo(tfVoyNo.text)
+        tfVoyNo.document.addDocumentListener(FieldListener {
+            castToType(tfVoyNo.text, noonPresenter::setVoyNo)
+        })
 
         cbPort.run {
             isEditable = false
 
-            this.newActionListener ({ seaPortDto, action ->
+            this.newActionListener({ seaPortDto, action ->
                 if (action.actionCommand.equals("comboBoxChanged")) {
                     noonPresenter.setUnlocode(seaPortDto)
 
                     cbTerminal.removeActionListener(actionChangeTerminal)
-                    FormsUtils.initListTerminals(cbTerminal, seaPortDto, setLatitude = {}, setLongitude = {}, setTerminal = noonPresenter::setTerminal)
+                    FormsUtils.initListTerminals(
+                        cbTerminal,
+                        seaPortDto,
+                        setLatitude = {},
+                        setLongitude = {},
+                        setTerminal = noonPresenter::setTerminal
+                    )
                     cbTerminal.addActionListener(actionChangeTerminal)
                 }
             })
@@ -126,13 +142,13 @@ class NoonTab(
         }
 
         FormsUtils.initListTimeZone(cbTZ)
-        cbTZ.newActionListener ({ newTZ, _ ->
+        cbTZ.newActionListener({ newTZ, _ ->
             noonPresenter.setTZ(newTZ)
         })
 
         cbLastPort.run {
             isEditable = false
-            this.newActionListener( { selectedSeaPort, actionEvent ->
+            this.newActionListener({ selectedSeaPort, actionEvent ->
                 if (actionEvent.actionCommand.equals("comboBoxChanged")) {
                     noonPresenter.setUnlocodeLast(selectedSeaPort)
                 }
@@ -140,7 +156,7 @@ class NoonTab(
         }
         cbNextPort.run {
             isEditable = false
-            this.newActionListener( { selectedSeaPort, actionEvent ->
+            this.newActionListener({ selectedSeaPort, actionEvent ->
                 if (actionEvent.actionCommand.equals("comboBoxChanged")) {
                     noonPresenter.setUnlocodeNext(selectedSeaPort)
                 }
@@ -186,7 +202,7 @@ class NoonTab(
         cbStatus.run {
             removeAllItems()
             isEditable = false
-            this.newActionListener( { newStatus, _ ->
+            this.newActionListener({ newStatus, _ ->
                 noonPresenter.setStatus(newStatus)
             })
             addItem(Status.AtSeeAdrift)
@@ -215,77 +231,10 @@ class NoonTab(
         dtETADateTime.setDateChangeLister(noonPresenter::setETADate)
         dtETADateTime.setTimeChangeLister(noonPresenter::setETATime)
 
-        CoroutineScope(context = EmptyCoroutineContext).launch {
-            noonPresenter.state.collectLatest { state ->
-                val isAtAnchor = state is State.AtAnchor
-                val isInPort = state is State.InPort
-                val isUpload = state is State.Upload
-                val isUploadSuccess = state is State.UploadSuccess
-                val isUploadError = state is State.UploadError
 
-                if (isAtAnchor) {
-                    jlSeaPassageDistance.isVisible = !isAtAnchor
-                    tfSeaPassageDistance.isVisible = !isAtAnchor
-
-                    jlDistanceToGo.isVisible = !isAtAnchor
-                    tfDistanceToGo.isVisible = !isAtAnchor
-
-                    jlMERPM.isVisible = !isAtAnchor
-                    tfMERPM.isVisible = !isAtAnchor
-
-                    jlMeMode.isVisible = !isAtAnchor
-                    cbMeMode.isVisible = !isAtAnchor
-
-                    jlCourse.isVisible = !isAtAnchor
-                    tfCourse.isVisible = !isAtAnchor
-
-                    jlSpeed.isVisible = !isAtAnchor
-                    tfSpeed.isVisible = !isAtAnchor
-
-                    jlETADateTime.isVisible = true
-
-                    tfSeaPassageDistance.value = 0
-
-                } else if (isInPort) {
-
-                    positionFieldLatitude.isVisible = !isInPort
-
-                    positionFieldLongitude.isVisible = !isInPort
-
-                    jlSeaPassageDistance.isVisible = !isInPort
-                    tfSeaPassageDistance.isVisible = !isInPort
-
-                    jlETADateTime.isVisible = !isInPort
-                    dtETADateTime.isVisible = !isInPort
-
-                    jlMERPM.isVisible = !isInPort
-                    tfMERPM.isVisible = !isInPort
-
-                    jlDistanceToGo.isVisible = !isInPort
-                    tfDistanceToGo.isVisible = !isInPort
-
-                    jlMeMode.isVisible = !isInPort
-                    cbMeMode.isVisible = !isInPort
-
-                    jlCourse.isVisible = !isInPort
-                    tfCourse.isVisible = !isInPort
-
-                    jlSpeed.isVisible = !isInPort
-                    tfSpeed.isVisible = !isInPort
-
-
-                } else if (isUpload) {
-
-                } else if (isUploadSuccess) {
-
-                } else if (isUploadError) {
-                    JOptionPane.showMessageDialog(saveBtnPanel, (state as State.UploadError).message)
-                }
-            }
-        }
 
         cbMeMode.initItems(listOf(MEMode.ECO, MEMode.FULL), noonPresenter::setMeMode)
-        cbMeMode.newActionListener ({ currMode, _ ->
+        cbMeMode.newActionListener({ currMode, _ ->
             noonPresenter.setMeMode(currMode)
         })
 
@@ -341,10 +290,179 @@ class NoonTab(
             noonPresenter.saveReport()
         }
 
+        saveBtnPanel.setClickSend {
+            noonPresenter.sendReport()
+        }
+
+        saveBtnPanel.setClickLoad {
+            val fileChooser = JFileChooser()
+            fileChooser.dialogTitle = "Select File"
+            val filter = FileNameExtensionFilter(
+                "JSON", "json"
+            )
+            fileChooser.fileFilter = filter
+            // Определение режима - только файл
+            // Определение режима - только файл
+            fileChooser.fileSelectionMode = JFileChooser.FILES_ONLY
+
+            val result = fileChooser.showOpenDialog(this)
+            // Если файл выбран, покажем его в сообщении
+            // Если файл выбран, покажем его в сообщении
+            if (result == JFileChooser.APPROVE_OPTION) {
+                noonPresenter.load(fileChooser.selectedFile)
+            }
+        }
+
         inflateUI()
 
-    }
+        elementWithError.put(ComponentKey(tfVoyNo, NoValidData.VoyNo), tfVoyNo.border)
+        elementWithError.put(ComponentKey(cbTZ, NoValidData.TimeZone), cbTZ.border)
+        elementWithError.put(ComponentKey(cbPort, NoValidData.Unlocode), cbPort.border)
+        elementWithError.put(ComponentKey(cbNextPort, NoValidData.UnlocodeNext), cbNextPort.border)
+        elementWithError.put(ComponentKey(cbLastPort, NoValidData.UnlocodeLast), cbLastPort.border)
+        elementWithError.put(ComponentKey(dateTimeLT, NoValidData.DateTimeStatus_1), dateTimeLT.border)
+        elementWithError.put(ComponentKey(positionFieldLatitude, NoValidData.Latitude_1), positionFieldLatitude.border)
+        elementWithError.put(
+            ComponentKey(positionFieldLongitude, NoValidData.Longitude_1),
+            positionFieldLongitude.border
+        )
+        elementWithError.put(ComponentKey(cbTerminal, NoValidData.Terminal), cbTerminal.border)
 
+        CoroutineScope(context = EmptyCoroutineContext).launch {
+            noonPresenter.stateReport.collectLatest { state ->
+                val isAtAnchor = state is State.AtAnchor
+                val isInPort = state is State.InPort
+                val isUpload = state is State.Upload
+                val isUploadSuccess = state is State.UploadSuccess
+                val isUploadError = state is State.UploadError
+
+                val visiblePortTerminal =
+                    isInPort || isAtAnchor || (isUploadSuccess && state is State.UploadSuccess && (state.status == Status.AtAnchor || state.status == Status.InPort))
+                jlPort.isVisible = visiblePortTerminal
+                cbPort.isVisible = visiblePortTerminal
+                jlTerminal.isVisible = visiblePortTerminal
+                cbTerminal.isVisible = visiblePortTerminal
+
+                if (isAtAnchor) {
+
+                    jlSeaPassageDistance.isVisible = !isAtAnchor
+                    tfSeaPassageDistance.isVisible = !isAtAnchor
+
+                    jlDistanceToGo.isVisible = !isAtAnchor
+                    tfDistanceToGo.isVisible = !isAtAnchor
+
+                    jlMERPM.isVisible = !isAtAnchor
+                    tfMERPM.isVisible = !isAtAnchor
+
+                    jlMeMode.isVisible = !isAtAnchor
+                    cbMeMode.isVisible = !isAtAnchor
+
+                    jlCourse.isVisible = !isAtAnchor
+                    tfCourse.isVisible = !isAtAnchor
+
+                    jlSpeed.isVisible = !isAtAnchor
+                    tfSpeed.isVisible = !isAtAnchor
+
+                    jlETADateTime.isVisible = true
+                    dtETADateTime.isVisible = true
+
+                    tfSeaPassageDistance.value = 0
+                    tfMERPM.value = 0
+                    tfDistanceToGo.value = 0
+                    cbMeMode.selectedItem = MEMode.ECO
+                    tfCourse.value = 0
+                    tfSpeed.value = 0
+
+                } else if (isInPort) {
+
+                    jlPositionLatitude.isVisible = !isInPort
+                    jlPositionLongitude.isVisible = !isInPort
+                    positionFieldLatitude.isVisible = !isInPort
+                    positionFieldLongitude.isVisible = !isInPort
+
+                    jlSeaPassageDistance.isVisible = !isInPort
+                    tfSeaPassageDistance.isVisible = !isInPort
+
+                    jlETADateTime.isVisible = !isInPort
+                    dtETADateTime.isVisible = !isInPort
+
+                    jlMERPM.isVisible = !isInPort
+                    tfMERPM.isVisible = !isInPort
+
+                    jlDistanceToGo.isVisible = !isInPort
+                    tfDistanceToGo.isVisible = !isInPort
+
+                    jlMeMode.isVisible = !isInPort
+                    cbMeMode.isVisible = !isInPort
+
+                    jlCourse.isVisible = !isInPort
+                    tfCourse.isVisible = !isInPort
+
+                    jlSpeed.isVisible = !isInPort
+                    tfSpeed.isVisible = !isInPort
+
+                    jlPort.isVisible = isInPort
+                    cbPort.isVisible = isInPort
+
+                    jlTerminal.isVisible = isInPort
+                    cbTerminal.isVisible = isInPort
+
+                    tfSeaPassageDistance.value = 0
+                    dtETADateTime.resetTime()
+                    tfMERPM.value = 0
+                    tfDistanceToGo.value = 0
+                    cbMeMode.selectedItem = MEMode.ECO
+                    tfCourse.value = 0
+                    tfSpeed.value = 0
+                    positionFieldLatitude.reset()
+                    positionFieldLongitude.reset()
+
+                } else if (isUpload) {
+
+                } else if (isUploadSuccess) {
+                    handleFieldsError(arrayListOf())
+                } else if (isUploadError) {
+                    JOptionPane.showMessageDialog(saveBtnPanel, (state as State.UploadError).message)
+                    handleFieldsError(state.noValidData)
+                } else {
+
+                    jlPositionLongitude.isVisible = true
+                    jlPositionLatitude.isVisible = true
+                    positionFieldLatitude.isVisible = true
+                    positionFieldLongitude.isVisible = true
+
+                    jlSeaPassageDistance.isVisible = true
+                    tfSeaPassageDistance.isVisible = true
+
+                    jlETADateTime.isVisible = true
+                    dtETADateTime.isVisible = true
+
+                    jlMERPM.isVisible = true
+                    tfMERPM.isVisible = true
+
+                    jlDistanceToGo.isVisible = true
+                    tfDistanceToGo.isVisible = true
+
+                    jlMeMode.isVisible = true
+                    cbMeMode.isVisible = true
+
+                    jlCourse.isVisible = true
+                    tfCourse.isVisible = true
+
+                    jlSpeed.isVisible = true
+                    tfSpeed.isVisible = true
+
+                    jlPort.isVisible = false
+                    cbPort.isVisible = false
+
+                    jlTerminal.isVisible = false
+                    cbTerminal.isVisible = false
+
+                }
+            }
+        }
+
+    }
 
     private fun inflateUI() {
 
@@ -452,4 +570,66 @@ class NoonTab(
         insertEmptyRow(30)
             .addSpan(saveBtnPanel)
     }
+
+    override fun loadFromJson(json: JsonElement) {
+        val gson = Gson()
+        var response: NoonResponse? = null
+        try {
+            response = gson.fromJson(json, NoonResponse::class.java)
+            change(response)
+        } catch (e: JsonSyntaxException) {
+            errorChange("File recognition error!")
+        }
+    }
+
+    fun change(response: NoonResponse) {
+
+        val dataSourcePorts = DataSourcePorts.getInstance()
+        val ports = dataSourcePorts.ports
+
+        tfVoyNo.value = response.voyNo
+        cbTZ.selectedItem = response.timeZone
+
+        setSelectedItem(unlocodePort = response.unlocodeLast, ports = ports, cbSeaPort = cbLastPort)
+        setSelectedItem(unlocodePort = response.unlocodeNext, ports = ports, cbSeaPort = cbNextPort)
+
+        dateTimeLT.setDateTime(response.dateLt, response.timeLt)
+        val newStatus = NoonResponse.findStatusByString(response.status)
+        cbStatus.selectedItem = newStatus
+        noonPresenter.setStatus(newStatus)
+
+        positionFieldLatitude.setPositionWithReaction(response.latitude)
+        positionFieldLongitude.setPositionWithReaction(response.longitude)
+
+        tfSeaPassageDistance.value = response.seaPassageDistance
+        tfDistanceToGo.value = response.distanceToGo
+
+        dtETADateTime.setDateTime(response.dateETA, response.timeETA)
+        cbMeMode.selectedItem = MEMode.valueOf(response.meMode)
+
+        tfMERPM.value = response.meRPM
+        tfCourse.value = response.course
+
+        tfHFOROB.value = response.hfoROB
+        tfSpeed.value = response.speed
+
+        tfMGO_ROB_01.value = response.mgo_01_ROB
+        tfFreshWaterMT.value = response.freshWater
+
+        tfMGO_ROB_05.value = response.mgo_05_ROB
+
+        tfWindScaleBeaufourt.value = response.windScaleBeaufourt
+        tfWindDirection.value = response.windDirection
+
+        tfSwellHeight.value = response.swellHeight
+        tfSwellDirection.value = response.swellDirection
+
+        tfNote.text = response.note
+
+    }
+
+    fun errorChange(error: String) {
+        JOptionPane.showMessageDialog(this, error)
+    }
+
 }

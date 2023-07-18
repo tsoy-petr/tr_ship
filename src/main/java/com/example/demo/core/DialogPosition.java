@@ -1,14 +1,11 @@
 package com.example.demo.core;
 
-import com.example.demo.model.SeaPortDto;
 import com.example.demo.utils.FormatHelper;
 import com.example.demo.utils.GridBagHelper;
 
 import javax.swing.*;
 import javax.swing.text.NumberFormatter;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
@@ -53,17 +50,25 @@ public class DialogPosition extends JDialog {
         tfDegrees.setColumns(2);
         tfDegrees.setText(Integer.toString(position.getDegrees()));
         tfDegrees.getDocument().addDocumentListener(new FieldListener(() -> {
-            Object currValue = tfDegrees.getValue();
-            if (currValue != null) {
-                try {
-                    int currDegrees = (Integer) currValue;
-                    Position currPosition = modelDialog.getPosition();
-                    currPosition.setDegrees(currDegrees);
-                    //modelDialog.setPosition(currPosition);
-                } catch (ClassCastException exception) {
-                    exception.printStackTrace();
-                }
+            String text = tfDegrees.getText();
+            try {
+                int currDegrees = Integer.parseInt(text);
+                Position currPosition = modelDialog.getPosition();
+                currPosition.setDegrees(currDegrees);
+            } catch (Exception e) {
+
             }
+//            Object currValue = tfDegrees.getValue();
+//            if (currValue != null) {
+//                try {
+//                    int currDegrees = (Integer) currValue;
+//                    Position currPosition = modelDialog.getPosition();
+//                    currPosition.setDegrees(currDegrees);
+//                    //modelDialog.setPosition(currPosition);
+//                } catch (ClassCastException exception) {
+//                    exception.printStackTrace();
+//                }
+//            }
         }));
         dialogContainer.add(tfDegrees, helper.nextCell().fillBoth().get());
 
@@ -73,17 +78,28 @@ public class DialogPosition extends JDialog {
         tfTime.setColumns(3);
         tfTime.setText(Double.toString(position.getTime()));
         tfTime.getDocument().addDocumentListener(new FieldListener(() -> {
-            Object currValue = tfTime.getValue();
-            if (currValue != null) {
-                try {
-                    double currDegrees = (Double) currValue;
-                    Position currPosition = modelDialog.getPosition();
-                    currPosition.setTime(currDegrees);
-                    //modelDialog.setPosition(currPosition);
-                } catch (ClassCastException exception) {
-                    exception.printStackTrace();
-                }
-            }
+
+           String text = tfTime.getText();
+
+           try {
+               double currDegrees = Double.parseDouble(text);
+               Position currPosition = modelDialog.getPosition();
+               currPosition.setTime(currDegrees);
+           } catch (Exception e) {
+
+           }
+//            Object currValue = tfTime.getValue();
+//            if (currValue != null) {
+//                try {
+//                    double currDegrees = (Double) currValue;
+//                    Position currPosition = modelDialog.getPosition();
+//                    currPosition.setTime(currDegrees);
+//                    //modelDialog.setPosition(currPosition);
+//                } catch (ClassCastException exception) {
+//                    exception.printStackTrace();
+//                }
+//            }
+
         }));
         dialogContainer.add(tfTime, helper.nextCell().fillBoth().get());
 

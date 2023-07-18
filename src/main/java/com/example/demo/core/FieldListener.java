@@ -24,7 +24,9 @@ public class FieldListener implements DocumentListener {
 
     @Override
     public void removeUpdate(DocumentEvent e) {
-
+        if (listener != null) {
+            listener.change();
+        }
     }
 
     @Override

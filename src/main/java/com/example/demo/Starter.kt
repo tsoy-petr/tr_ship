@@ -48,27 +48,27 @@ class Starter {
                 val settingsEmailDto = settingsPresenter.readSettings()
             }
         }
-        tabbedPane.addTab("DEPARTURE", initDer())
-        tabbedPane.addTab("NOON", initNoonReport())
+//        tabbedPane.addTab("DEPARTURE", initDer())
+//        tabbedPane.addTab("NOON", initNoonReport())
         tabbedPane.addTab("SETTINGS", initSett())
         tabbedPane.addTab("Data ports", initDataPorts())
         frame.add(BorderLayout.CENTER, JScrollPane(tabbedPane))
         frame.isVisible = true
     }
 
-    private fun initDer(): JPanel? {
-        val tab = JPanel()
-        tab.layout = FlowLayout()
-        tab.add(DepartureTab(DeparturePresenter()))
-        return tab
-    }
+//    private fun initDer(): JPanel? {
+//        val tab = JPanel()
+//        tab.layout = FlowLayout()
+//        tab.add(DepartureTab(DeparturePresenter()))
+//        return tab
+//    }
 
-    private fun initNoonReport(): JPanel? {
-        val tab = JPanel()
-        tab.layout = FlowLayout()
-        tab.add(NoonTab(NoonPresenter()))
-        return tab
-    }
+//    private fun initNoonReport(): JPanel? {
+//        val tab = JPanel()
+//        tab.layout = FlowLayout()
+//        tab.add(NoonTab(NoonPresenter()))
+//        return tab
+//    }
 
     private fun initSett(): JPanel? {
         val tab = JPanel()

@@ -3,22 +3,41 @@ package com.example.demo.departure;
 import com.example.demo.SendEmailService;
 import com.example.demo.core.*;
 import com.example.demo.core.model.ResultSendDeparture;
+import com.example.demo.dataPorts.DataSourcePorts;
+import com.example.demo.mapping.DepartureToPostBody;
+import com.example.demo.model.ComponentKey;
+import com.example.demo.model.DepartureResponse;
 import com.example.demo.model.SeaPortDto;
-import com.example.demo.model.SettingsEmailDto;
 import com.example.demo.model.TerminalDto;
 import com.example.demo.service.SendReportAndSaveService;
 import com.example.demo.settings.DataSettings;
 import com.example.demo.settings.SettingsPresenter;
 import com.example.demo.utils.FormatHelper;
 import com.example.demo.utils.GridBagHelper;
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import javax.swing.border.Border;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
+import java.io.IOException;
+import java.io.Reader;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
-public class DepartureTab extends JPanel {
+public class DepartureTab extends TabReport {
 
     WaitLayerUI layerUI = new WaitLayerUI(this.getBackground());
 
@@ -42,20 +61,88 @@ public class DepartureTab extends JPanel {
 
     final JTextArea tfNote = new JTextArea(3, 25);
 
-    public DepartureTab(DeparturePresenter departurePresenter) {
+    private PositionField positionFieldLatitude;
+    private PositionField positionFieldLongitude;
+
+    private final DateTimeBox dateTime_1;
+    private final DateTimeBox dateTime_2;
+
+    private final Map<ComponentKey, Border> elementWithError = new HashMap();
+
+    private JTabbedPaneRouting paneRouting;
+    private JRadioButton departureFromBerth;
+    private JRadioButton departureFromAnchorage;
+    private DateTimeBox dateTime_POB;
+    private DateTimeBox dateTimePilotOff;
+    private DateTimeBox dateTimeTugMakeFast;
+    private DateTimeBox dateTimeTugCastOff;
+    private JFormattedTextField tfManeuveringDist;
+    private JFormattedTextField tfME;
+    private JComboBox<MEMode> cbMEMode;
+    private DateTimeBox dateTimeETANextPortLT;
+    private JFormattedTextField tfDistanceToGo;
+    private JFormattedTextField tfLshfoROB_s2;
+    private JFormattedTextField tfFreshWater;
+    private JFormattedTextField tfMgo_01_rob_s2;
+    private JFormattedTextField tfMgo_05_rob_s2;
+    private JFormattedTextField tfCargoOnDeck;
+    private JFormattedTextField tfCargoHolds;
+    private JFormattedTextField tfLaden_20;
+    private JFormattedTextField tfLaden_40;
+    private JFormattedTextField tfEmpty_20;
+    private JFormattedTextField tfEmpty_40;
+    private JFormattedTextField tfDraftFWD;
+    private JFormattedTextField tfBallast;
+    private JFormattedTextField tfDraftAft;
+    private JFormattedTextField tfGM;
+    private JFormattedTextField tfDWT;
+    private JFormattedTextField tfFWReceived;
+    private JFormattedTextField tfDisplacement;
+    private JFormattedTextField tfLiveReefers;
+
+    public DepartureTab(DeparturePresenter departurePresenter, JTabbedPaneRouting paneRouting) {
 
         super();
 
-        DataSettings.getInstance().addListener(new DataSettings.SettingsChangeListener() {
-            @Override
-            public void change(SettingsEmailDto settingsEmail) {
-                if (settingsEmail != null) {
-                    tfVoyNoDeparture.setText(settingsEmail.getVoyNo());
-                }
+        this.paneRouting = paneRouting;
+
+        DataSettings.getInstance().addListener(settingsEmail -> {
+            if (settingsEmail != null) {
+                tfVoyNoDeparture.setText(settingsEmail.getVoyNo());
             }
         });
 
         this.departurePresenter = departurePresenter;
+
+        dateTime_1 = new DateTimeBox(departurePresenter::setDateStatus1, departurePresenter::setTimeStatus1);
+        dateTime_2 = new DateTimeBox(departurePresenter::setDateStatus2, departurePresenter::setTimeStatus2);
+        dateTime_POB = new DateTimeBox(departurePresenter::setDatePob, departurePresenter::setTimePob);
+        dateTimePilotOff = new DateTimeBox(departurePresenter::setDatePilotOff, departurePresenter::setTimePilotOff);
+        dateTimeTugMakeFast = new DateTimeBox(departurePresenter::setDateTugMakeFast, departurePresenter::setTimeTugMakeFast);
+        dateTimeTugCastOff = new DateTimeBox(departurePresenter::setDateTugCastOff, departurePresenter::setTimeTugCastOff);
+        tfManeuveringDist = new JFormattedTextField(FormatHelper.getManeuveringDist_Formatter());
+        tfME = new JFormattedTextField(FormatHelper.getMERPM());
+        cbMEMode = new JComboBox<>();
+        dateTimeETANextPortLT = new DateTimeBox(departurePresenter::setETA_Next_Port_date, departurePresenter::setETA_Next_Port_time);
+        tfDistanceToGo = new JFormattedTextField(FormatHelper.getDistanceToGo_Formatter());
+        tfLshfoROB_s2 = new JFormattedTextField(FormatHelper.getLshfoROB_Formatter());
+        tfFreshWater = new JFormattedTextField(FormatHelper.getFreshWater_Formatter());
+        tfMgo_01_rob_s2 = new JFormattedTextField(FormatHelper.getMgo_01_ROB_Formatter());
+        tfMgo_05_rob_s2 = new JFormattedTextField(FormatHelper.getMgo_05_ROB_Formatter());
+        tfCargoOnDeck = new JFormattedTextField(FormatHelper.getCargoOnDesk_Formatter());
+        tfCargoHolds = new JFormattedTextField(FormatHelper.getCargoHolds_Formatter());
+        tfLaden_20 = new JFormattedTextField(FormatHelper.getContainer_Formatter());
+        tfLaden_40 = new JFormattedTextField(FormatHelper.getContainer_Formatter());
+        tfEmpty_20 = new JFormattedTextField(FormatHelper.getContainer_Formatter());
+        tfEmpty_40 = new JFormattedTextField(FormatHelper.getContainer_Formatter());
+        tfDraftFWD = new JFormattedTextField(FormatHelper.getDraftFWD_Formatter());
+        tfBallast = new JFormattedTextField(FormatHelper.getBallast_Formatter());
+        tfDraftAft = new JFormattedTextField(FormatHelper.getDraftAft_Formatter());
+        tfGM = new JFormattedTextField(FormatHelper.getGM_Formatter());
+        tfDWT = new JFormattedTextField(FormatHelper.getDWT_Formatter());
+        tfFWReceived = new JFormattedTextField(FormatHelper.getFreshWater_Formatter());
+        tfDisplacement = new JFormattedTextField(FormatHelper.getDisplacement_Formatter());
+        tfLiveReefers = new JFormattedTextField(FormatHelper.getLiveReefers_Formatter());
 
         departurePresenter.addChangePortsListener(() -> {
             departurePresenter.initListPorts(cbPortDeparture, cbTerminalDeparture, cbTZDeparture);
@@ -91,12 +178,7 @@ public class DepartureTab extends JPanel {
         add(jlayer, helper.get());
 
         add(new JLabel("Note"), helper.nextCell().alignRight().gap(10).get());
-        tfNote.getDocument().addDocumentListener(new FieldListener(new FieldListener.ChangeListener() {
-            @Override
-            public void change() {
-                departurePresenter.setNote(tfNote.getText());
-            }
-        }));
+        tfNote.getDocument().addDocumentListener(new FieldListener(() -> departurePresenter.setNote(tfNote.getText())));
         add(tfNote, helper.nextCell().get());
 
         //новая строка
@@ -159,55 +241,141 @@ public class DepartureTab extends JPanel {
         //новая строка
         helper.insertEmptyRow(this, 10);
 
-        SaveBtnPanel saveBtnPanel = new SaveBtnPanel(true, true);
+        SaveBtnPanel saveBtnPanel = new SaveBtnPanel(true, false, true, true);
         add(saveBtnPanel, helper.span().get());
         saveBtnPanel.setClickSave(() -> {
-            ResultSendDeparture result = (new SendReportAndSaveService()).saveDeparture(
-                    (new SettingsPresenter()).readSettings(),
-                    departurePresenter.mapToModelResponse()
-            );
-            if (! result.getSuccess()) {
-                JOptionPane.showMessageDialog(jbSend, result.getMessage());
-            }
+
+            departurePresenter.validateResponse(() -> {
+                handleFieldsError(new ArrayList<>());
+                ResultSendDeparture result = (new SendReportAndSaveService()).saveDeparture(
+                        (new SettingsPresenter()).readSettings(),
+                        departurePresenter.mapToModelResponse()
+                );
+                if (!result.getSuccess()) {
+                    JOptionPane.showMessageDialog(jbSend, result.getMessage());
+
+                }
+            }, (message, noValidData) -> {
+                JOptionPane.showMessageDialog(jbSend, message);
+                handleFieldsError(noValidData);
+            });
         });
-        saveBtnPanel.setClickSaveAndSave(() -> {
-            ResultSendDeparture result = (new SendReportAndSaveService()).saveAndSandDeparture(
-                    (new SettingsPresenter()).readSettings(),
-                    departurePresenter.mapToModelResponse()
+
+        saveBtnPanel.setClickSend(() -> {
+
+            departurePresenter.validateResponse(() -> {
+
+                        handleFieldsError(new ArrayList<>());
+
+                        SettingsPresenter settingsPresenter = new SettingsPresenter();
+
+                        ResultSendDeparture result = (new SendReportAndSaveService()).sendDepartureOnMailApp(
+                                settingsPresenter.readSettings(),
+                                (new DepartureToPostBody()).map(departurePresenter.mapToModelResponse()),
+                                "Departure"
+                        );
+                        if (!result.getSuccess()) {
+                            JOptionPane.showMessageDialog(jbSend, result.getMessage());
+                        }
+                    },
+                    (message, noValidData) -> {
+                        JOptionPane.showMessageDialog(jbSend, message);
+                        handleFieldsError(noValidData);
+                    }
             );
-            if (! result.getSuccess()) {
-                JOptionPane.showMessageDialog(jbSend, result.getMessage());
+
+        });
+
+        saveBtnPanel.setClickLoad(() -> {
+
+            JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setDialogTitle("Select File");
+            FileNameExtensionFilter filter = new FileNameExtensionFilter(
+                    "JSON", "json");
+            fileChooser.setFileFilter(filter);
+            // Определение режима - только файл
+            fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+
+            int result = fileChooser.showOpenDialog(this);
+            // Если файл выбран, покажем его в сообщении
+            if (result == JFileChooser.APPROVE_OPTION) {
+
+//                departurePresenter.load(fileChooser.getSelectedFile());
+                File file = fileChooser.getSelectedFile();
+                String nameTab = DefineTabName.INSTANCE.define(file.getName());
+
+                if (!nameTab.isEmpty()) {
+                    try (Reader reader = Files.newBufferedReader(file.toPath(),
+                            StandardCharsets.UTF_8)) {
+
+                        JsonParser parser = new JsonParser();
+                        JsonElement tree = parser.parse(reader);
+
+                        if (tree.isJsonObject()) {
+
+                            if (paneRouting != null) {
+                                paneRouting.selectTabWithData(nameTab, tree);
+                            }
+                        }
+
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    errorChange("Report type not defined!");
+                }
+
+
             }
         });
 
+        elementWithError.put(new ComponentKey(tfVoyNoDeparture, NoValidData.VoyNo), tfVoyNoDeparture.getBorder());
+        elementWithError.put(new ComponentKey(cbPortDeparture, NoValidData.Unlocode), cbPortDeparture.getBorder());
+        elementWithError.put(new ComponentKey(cbTZDeparture, NoValidData.TimeZone), cbTZDeparture.getBorder());
+        elementWithError.put(new ComponentKey(dateTime_1, NoValidData.DateTimeStatus_1), dateTime_1.getBorder());
+        elementWithError.put(new ComponentKey(dateTime_2, NoValidData.DateTimeStatus_2), dateTime_2.getBorder());
+        elementWithError.put(new ComponentKey(positionFieldLatitude, NoValidData.Latitude_1), positionFieldLatitude.getBorder());
+        elementWithError.put(new ComponentKey(positionFieldLongitude, NoValidData.Longitude_1), positionFieldLongitude.getBorder());
+        elementWithError.put(new ComponentKey(cbTerminalDeparture, NoValidData.Terminal), cbTerminalDeparture.getBorder());
+    }
+
+    private void handleFieldsError(ArrayList<NoValidData> noValidData) {
+        elementWithError.forEach((componentKey, border) -> {
+            if (noValidData.contains(componentKey.noValidData)) {
+                componentKey.component.setBorder(BorderFactory.createLineBorder(Color.red, 4, true));
+            } else {
+                componentKey.component.setBorder(border);
+            }
+        });
     }
 
     private void initSelectedTypeDeparture(DeparturePresenter departurePresenter) {
         //новая строка
         helper.insertEmptyRow(this, 10);
 
-        JRadioButton DepartureFromBerth = new JRadioButton("Departure from Berth");
-        JRadioButton DepartureFromAnchorage = new JRadioButton("Departure from Anchorage");
+        departureFromBerth = new JRadioButton("Departure from Berth");
+        departureFromAnchorage = new JRadioButton("Departure from Anchorage");
         ButtonGroup bg = new ButtonGroup();
-        bg.add(DepartureFromBerth);
-        bg.add(DepartureFromAnchorage);
-        bg.setSelected(DepartureFromBerth.getModel(), true);
+        bg.add(departureFromBerth);
+        bg.add(departureFromAnchorage);
+        bg.setSelected(departureFromBerth.getModel(), true);
 
-        DepartureFromAnchorage.addActionListener(e -> {
+        departureFromAnchorage.addActionListener(e -> {
                     departurePresenter.setDeparture(DeparturePresenter.DepartureState.ANCHORAGE);
                     lbTypeReport1.setText("Anchor aweigh");
                 }
         );
-        DepartureFromBerth.addActionListener(e -> {
-            departurePresenter.setDeparture(DeparturePresenter.DepartureState.BERTH);
-            lbTypeReport1.setText("All clear");
-        });
+        departureFromBerth.addActionListener(e -> {
+                    departurePresenter.setDeparture(DeparturePresenter.DepartureState.BERTH);
+                    lbTypeReport1.setText("All clear");
+                }
+        );
 
         helper.nextEmptyCell(this, 10);
-        add(DepartureFromBerth, helper.nextCell().get());
+        add(departureFromBerth, helper.nextCell().get());
 
         helper.nextEmptyCell(this, 10);
-        add(DepartureFromAnchorage, helper.nextCell().get());
+        add(departureFromAnchorage, helper.nextCell().get());
         helper.nextEmptyCell(this, 10);
     }
 
@@ -218,6 +386,12 @@ public class DepartureTab extends JPanel {
         add(lbVoyNoDeparture, helper.nextCell().alignRight().gap(10).get());
 
         tfVoyNoDeparture.setColumns(10);
+        tfVoyNoDeparture.setText(DataSettings.getInstance().readSettings().getVoyNo());
+        departurePresenter.setVoyNo(DataSettings.getInstance().readSettings().getVoyNo());
+        tfVoyNoDeparture.getDocument().addDocumentListener(new FieldListener(() ->
+                departurePresenter.setVoyNo(tfVoyNoDeparture.getText())
+        ));
+
         add(tfVoyNoDeparture, helper.nextCell().fillBoth().get());
 
         //пропуск в виде одной ячейки
@@ -264,6 +438,10 @@ public class DepartureTab extends JPanel {
                             cbTZDeparture.setSelectedItem(selectedSeaPort.getTimeZone());
                             departurePresenter.initListTerminals(cbTerminalDeparture, selectedSeaPort);
                             departurePresenter.setPort(selectedSeaPort);
+
+                            positionFieldLatitude.setPosition(departurePresenter.getLatitude());
+                            positionFieldLongitude.setPosition(departurePresenter.getLongitude());
+
                         }
                     } catch (ClassCastException ex) {
                         ex.printStackTrace();
@@ -306,13 +484,12 @@ public class DepartureTab extends JPanel {
         //новая строка
         helper.insertEmptyRow(this, 20);
         add(lbTypeReport1, helper.nextCell().alignRight().gap(10).get());
-        add(new DateTimeBox(departurePresenter::setDateStatus1, departurePresenter::setTimeStatus1),
-                helper.nextCell().fillBoth().get());
+        add(dateTime_1, helper.nextCell().fillBoth().get());
+
         //пропуск в виде одной ячейки
         helper.nextEmptyCell(this, 30);
         add(new JLabel("POB"), helper.nextCell().alignRight().gap(10).get());
-        add(new DateTimeBox(departurePresenter::setDatePob, departurePresenter::setTimePob),
-                helper.nextCell().fillBoth().get());
+        add(dateTime_POB, helper.nextCell().fillBoth().get());
 
 
         //новая строка
@@ -328,7 +505,7 @@ public class DepartureTab extends JPanel {
         //пропуск в виде одной ячейки
         helper.nextCell();
         add(new JLabel("Pilot off"), helper.nextCell().alignRight().gap(10).get());
-        add(new DateTimeBox(departurePresenter::setDatePilotOff, departurePresenter::setTimePilotOff),
+        add(dateTimePilotOff,
                 helper.nextCell().fillHorizontally().get());
 
 
@@ -345,7 +522,7 @@ public class DepartureTab extends JPanel {
         //пропуск в виде одной ячейки
         helper.nextCell();
         add(new JLabel("Tug make fast"), helper.nextCell().alignRight().gap(10).get());
-        add(new DateTimeBox(departurePresenter::setDateTugMakeFast, departurePresenter::setTimeTugMakeFast),
+        add(dateTimeTugMakeFast,
                 helper.nextCell().fillBoth().get());
 
 
@@ -362,7 +539,7 @@ public class DepartureTab extends JPanel {
         //пропуск в виде одной ячейки
         helper.nextCell();
         add(new JLabel("Tug cast off"), helper.nextCell().alignRight().gap(10).get());
-        add(new DateTimeBox(departurePresenter::setDateTugCastOff, departurePresenter::setTimeTugCastOff),
+        add(dateTimeTugCastOff,
                 helper.nextCell().fillBoth().get());
 
         //новая строка
@@ -386,16 +563,16 @@ public class DepartureTab extends JPanel {
         helper.insertEmptyRow(this, 20);
 
         add(new JLabel("BOSP"), helper.nextCell().alignRight().gap(10).get());
-        add(new DateTimeBox(departurePresenter::setDateStatus2, departurePresenter::setTimeStatus2),
-                helper.nextCell().fillBoth().get());
+        add(dateTime_2, helper.nextCell().fillBoth().get());
+
         //пропуск в виде одной ячейки
         helper.nextEmptyCell(this, 10);
         add(new JLabel("Maneuvering Dist"), helper.nextCell().alignRight().gap(10).get());
-        JFormattedTextField tfManeuveringDist = new JFormattedTextField(FormatHelper.getManeuveringDist_Formatter());
+
         tfManeuveringDist.getDocument().addDocumentListener(new FieldListener(() -> {
-            Object currValue = tfLSHFOROB.getValue();
+            Object currValue = tfManeuveringDist.getValue();
             if (currValue != null) {
-                departurePresenter.setLSHFOROB_S1((Double) currValue);
+                departurePresenter.setManeuveringDist((Double) currValue);
             }
         }));
         add(tfManeuveringDist, helper.nextCell().fillHorizontally().get());
@@ -404,29 +581,31 @@ public class DepartureTab extends JPanel {
 //        новая строка
         helper.insertEmptyRow(this, 10);
         add(new JLabel("Position Latitude"), helper.nextCell().alignRight().gap(10).get());
-        PositionField positionFieldLatitude = new PositionField(new Position(Position.TypePosition.Latitude, 0, 0, Position.Hemisphere.N), departurePresenter::setLatitude);
+        positionFieldLatitude = new PositionField(new Position(Position.TypePosition.Latitude, 0, 0, Position.Hemisphere.N), departurePresenter::setLatitude);
+        positionFieldLatitude.setPosition(departurePresenter.getLatitude());
         add(positionFieldLatitude, helper.nextCell().fillBoth().get());
 //        //пропуск в виде одной ячейки
         helper.nextCell();
         add(new JLabel("Position Longitude"), helper.nextCell().alignRight().gap(10).get());
-        PositionField positionFieldLongitude = new PositionField(new Position(Position.TypePosition.Longitude, 0, 0, Position.Hemisphere.E), departurePresenter::setLongitude);
+        positionFieldLongitude = new PositionField(new Position(Position.TypePosition.Longitude, 0, 0, Position.Hemisphere.E), departurePresenter::setLongitude);
+        positionFieldLongitude.setPosition(departurePresenter.getLongitude());
         add(positionFieldLongitude, helper.nextCell().fillBoth().get());
 
         //        новая строка
         helper.insertEmptyRow(this, 10);
         add(new JLabel("ME (RPM)"), helper.nextCell().alignRight().gap(10).get());
-        JFormattedTextField tfME = new JFormattedTextField(FormatHelper.getMERPM());
+
         tfME.getDocument().addDocumentListener(new FieldListener(() -> {
             Object currValue = tfME.getValue();
             if (currValue != null) {
-                departurePresenter.setMeRPM((Integer) currValue);
+                departurePresenter.setMeRPM((Long) currValue);
             }
         }));
         add(tfME, helper.nextCell().fillHorizontally().get());
         //пропуск в виде одной ячейки
         helper.nextEmptyCell(this, 10);
         add(new JLabel("ME mode (Eco/Full)"), helper.nextCell().alignRight().gap(10).get());
-        JComboBox<MEMode> cbMEMode = new JComboBox<>();
+
         cbMEMode.addItem(MEMode.ECO);
         cbMEMode.addItem(MEMode.FULL);
         cbMEMode.addActionListener(e -> {
@@ -480,35 +659,33 @@ public class DepartureTab extends JPanel {
         //        новая строка
         helper.insertEmptyRow(this, 10);
         add(new JLabel("ETA Next Port (LT)"), helper.nextCell().alignRight().gap(10).get());
-        add(new DateTimeBox(departurePresenter::setETA_Next_Port_date, departurePresenter::setETA_Next_Port_time),
-                helper.nextCell().fillHorizontally().get());
+        add(dateTimeETANextPortLT, helper.nextCell().fillHorizontally().get());
+
         //пропуск в виде одной ячейки
         helper.nextEmptyCell(this, 10);
         add(new JLabel("Distance to go (NM)"), helper.nextCell().alignRight().gap(10).get());
-        JFormattedTextField tfDistanceToGo = new JFormattedTextField(FormatHelper.getDistanceToGo_Formatter());
         tfDistanceToGo.getDocument().addDocumentListener(new FieldListener(() -> {
             Object currValue = tfDistanceToGo.getValue();
             if (currValue != null) {
                 departurePresenter.setDistanceToGo((Double) currValue);
             }
         }));
+
         add(tfDistanceToGo, helper.nextCell().fillHorizontally().get());
 
         //        новая строка
         helper.insertEmptyRow(this, 10);
         add(new JLabel("LSHFO ROB (mt)"), helper.nextCell().alignRight().gap(10).get());
-        JFormattedTextField tfLshfoROB_S2 = new JFormattedTextField(FormatHelper.getLshfoROB_Formatter());
-        tfLshfoROB_S2.getDocument().addDocumentListener(new FieldListener(() -> {
-            Object currValue = tfLshfoROB_S2.getValue();
+        tfLshfoROB_s2.getDocument().addDocumentListener(new FieldListener(() -> {
+            Object currValue = tfLshfoROB_s2.getValue();
             if (currValue != null) {
                 departurePresenter.setLshfoROB_S2((Double) currValue);
             }
         }));
-        add(tfLshfoROB_S2, helper.nextCell().fillBoth().get());
+        add(tfLshfoROB_s2, helper.nextCell().fillBoth().get());
         //пропуск в виде одной ячейки
         helper.nextEmptyCell(this, 10);
         add(new JLabel("Fresh water (MT)"), helper.nextCell().alignRight().gap(10).get());
-        JFormattedTextField tfFreshWater = new JFormattedTextField(FormatHelper.getFreshWater_Formatter());
         tfFreshWater.getDocument().addDocumentListener(new FieldListener(() -> {
             Object currValue = tfFreshWater.getValue();
             if (currValue != null) {
@@ -520,33 +697,30 @@ public class DepartureTab extends JPanel {
         //        новая строка
         helper.insertEmptyRow(this, 10);
         add(new JLabel("MGO 0,1% ROB (mt)"), helper.nextCell().alignRight().gap(10).get());
-        JFormattedTextField tfMgo_01_ROB_S2 = new JFormattedTextField(FormatHelper.getMgo_01_ROB_Formatter());
-        tfMgo_01_ROB_S2.getDocument().addDocumentListener(new FieldListener(() -> {
-            Object currValue = tfMgo_01_ROB_S2.getValue();
+        tfMgo_01_rob_s2.getDocument().addDocumentListener(new FieldListener(() -> {
+            Object currValue = tfMgo_01_rob_s2.getValue();
             if (currValue != null) {
                 departurePresenter.setMgo_01_ROB_S2((Double) currValue);
             }
         }));
-        add(tfMgo_01_ROB_S2, helper.nextCell().fillBoth().get());
+        add(tfMgo_01_rob_s2, helper.nextCell().fillBoth().get());
 
         //пропуск в виде одной ячейки
         helper.nextEmptyCell(this, 10);
 
         add(new JLabel("MGO 0,5% ROB (MT)"), helper.nextCell().alignRight().gap(10).get());
-        JFormattedTextField tfMgo_05_ROB_S2 = new JFormattedTextField(FormatHelper.getMgo_05_ROB_Formatter());
-        tfMgo_05_ROB_S2.getDocument().addDocumentListener(new FieldListener(() -> {
-            Object currValue = tfMgo_05_ROB_S2.getValue();
+        tfMgo_05_rob_s2.getDocument().addDocumentListener(new FieldListener(() -> {
+            Object currValue = tfMgo_05_rob_s2.getValue();
             if (currValue != null) {
                 departurePresenter.setMgo_05_ROB_S2((double) currValue);
             }
         }));
-        add(tfMgo_05_ROB_S2, helper.nextCell().fillBoth().get());
+        add(tfMgo_05_rob_s2, helper.nextCell().fillBoth().get());
 
 
         //        новая строка
         helper.insertEmptyRow(this, 10);
         add(new JLabel("Cargo on deck (MT)"), helper.nextCell().alignRight().gap(10).get());
-        JFormattedTextField tfCargoOnDeck = new JFormattedTextField(FormatHelper.getCargoOnDesk_Formatter());
         tfCargoOnDeck.getDocument().addDocumentListener(new FieldListener(() -> {
             Object currValue = tfCargoOnDeck.getValue();
             if (currValue != null) {
@@ -559,7 +733,6 @@ public class DepartureTab extends JPanel {
         helper.nextEmptyCell(this, 10);
 
         add(new JLabel("Cargo Holds (MT)"), helper.nextCell().alignRight().gap(10).get());
-        JFormattedTextField tfCargoHolds = new JFormattedTextField(FormatHelper.getCargoHolds_Formatter());
         tfCargoHolds.getDocument().addDocumentListener(new FieldListener(() -> {
             Object currValue = tfCargoHolds.getValue();
             if (currValue != null) {
@@ -572,7 +745,6 @@ public class DepartureTab extends JPanel {
         //        новая строка
         helper.insertEmptyRow(this, 10);
         add(new JLabel("20' Laden"), helper.nextCell().alignRight().gap(10).get());
-        JFormattedTextField tfLaden_20 = new JFormattedTextField(FormatHelper.getContainer_Formatter());
         tfLaden_20.getDocument().addDocumentListener(new FieldListener(() -> {
             Object currValue = tfLaden_20.getValue();
             if (currValue != null) {
@@ -584,7 +756,6 @@ public class DepartureTab extends JPanel {
         helper.nextEmptyCell(this, 10);
 
         add(new JLabel("20' Empty"), helper.nextCell().alignRight().gap(10).get());
-        JFormattedTextField tfEmpty_20 = new JFormattedTextField(FormatHelper.getContainer_Formatter());
         tfEmpty_20.getDocument().addDocumentListener(new FieldListener(() -> {
             Object currValue = tfEmpty_20.getValue();
             if (currValue != null) {
@@ -596,7 +767,6 @@ public class DepartureTab extends JPanel {
         //        новая строка
         helper.insertEmptyRow(this, 10);
         add(new JLabel("40' Laden"), helper.nextCell().alignRight().gap(10).get());
-        JFormattedTextField tfLaden_40 = new JFormattedTextField(FormatHelper.getContainer_Formatter());
         tfLaden_40.getDocument().addDocumentListener(new FieldListener(() -> {
             Object currValue = tfLaden_40.getValue();
             if (currValue != null) {
@@ -608,8 +778,6 @@ public class DepartureTab extends JPanel {
         helper.nextEmptyCell(this, 10);
 
         add(new JLabel("40' Empty"), helper.nextCell().alignRight().gap(10).get());
-        JFormattedTextField tfEmpty_40 = new JFormattedTextField(FormatHelper.getContainer_Formatter());
-
         tfEmpty_40.getDocument().addDocumentListener(new FieldListener(new FieldListener.ChangeListener() {
             @Override
             public void change() {
@@ -625,7 +793,6 @@ public class DepartureTab extends JPanel {
         //        новая строка
         helper.insertEmptyRow(this, 10);
         add(new JLabel("Draft FWD( m)"), helper.nextCell().alignRight().gap(10).get());
-        JFormattedTextField tfDraftFWD = new JFormattedTextField(FormatHelper.getDraftFWD_Formatter());
         tfDraftFWD.getDocument().addDocumentListener(new FieldListener(() -> {
             Object currValue = tfDraftFWD.getValue();
             if (currValue != null) {
@@ -637,7 +804,6 @@ public class DepartureTab extends JPanel {
         helper.nextEmptyCell(this, 10);
 
         add(new JLabel("Ballast"), helper.nextCell().alignRight().gap(10).get());
-        JFormattedTextField tfBallast = new JFormattedTextField(FormatHelper.getBallast_Formatter());
         tfBallast.getDocument().addDocumentListener(new FieldListener(() -> {
             Object currValue = tfBallast.getValue();
             if (currValue != null) {
@@ -649,7 +815,6 @@ public class DepartureTab extends JPanel {
         //        новая строка
         helper.insertEmptyRow(this, 10);
         add(new JLabel("Draft Aft (m)"), helper.nextCell().alignRight().gap(10).get());
-        JFormattedTextField tfDraftAft = new JFormattedTextField(FormatHelper.getDraftAft_Formatter());
         tfDraftAft.getDocument().addDocumentListener(new FieldListener(() -> {
             Object currValue = tfDraftAft.getValue();
             if (currValue != null) {
@@ -661,7 +826,6 @@ public class DepartureTab extends JPanel {
         helper.nextEmptyCell(this, 10);
 
         add(new JLabel("GM(m)"), helper.nextCell().alignRight().gap(10).get());
-        JFormattedTextField tfGM = new JFormattedTextField(FormatHelper.getGM_Formatter());
         tfGM.getDocument().addDocumentListener(new FieldListener(() -> {
             Object currValue = tfGM.getValue();
             if (currValue != null) {
@@ -674,7 +838,6 @@ public class DepartureTab extends JPanel {
         //        новая строка
         helper.insertEmptyRow(this, 10);
         add(new JLabel("DWT"), helper.nextCell().alignRight().gap(10).get());
-        JFormattedTextField tfDWT = new JFormattedTextField(FormatHelper.getDWT_Formatter());
         tfDWT.getDocument().addDocumentListener(new FieldListener(() -> {
             Object currValue = tfDWT.getValue();
             if (currValue != null) {
@@ -686,7 +849,6 @@ public class DepartureTab extends JPanel {
         helper.nextEmptyCell(this, 10);
 
         add(new JLabel("FW received"), helper.nextCell().alignRight().gap(10).get());
-        JFormattedTextField tfFWReceived = new JFormattedTextField(FormatHelper.getFreshWater_Formatter());
         tfFWReceived.getDocument().addDocumentListener(new FieldListener(() -> {
             Object currValue = tfFWReceived.getValue();
             if (currValue != null) {
@@ -699,7 +861,6 @@ public class DepartureTab extends JPanel {
         //        новая строка
         helper.insertEmptyRow(this, 10);
         add(new JLabel("Displacement"), helper.nextCell().alignRight().gap(10).get());
-        JFormattedTextField tfDisplacement = new JFormattedTextField(FormatHelper.getDisplacement_Formatter());
         tfDisplacement.getDocument().addDocumentListener(new FieldListener(() -> {
             Object currValue = tfDisplacement.getValue();
             if (currValue != null) {
@@ -712,7 +873,6 @@ public class DepartureTab extends JPanel {
         helper.nextEmptyCell(this, 10);
 
         add(new JLabel("Live Reefers"), helper.nextCell().alignRight().gap(10).get());
-        JFormattedTextField tfLiveReefers = new JFormattedTextField(FormatHelper.getLiveReefers_Formatter());
         tfLiveReefers.getDocument().addDocumentListener(new FieldListener(() -> {
             Object currValue = tfLiveReefers.getValue();
             if (currValue != null) {
@@ -721,11 +881,6 @@ public class DepartureTab extends JPanel {
         }));
         add(tfLiveReefers, helper.nextCell().fillBoth().get());
 
-////        новая строка
-//        helper.insertEmptyRow(this, 10);
-//        add(new JLabel("Note"), helper.nextCell().alignRight().gap(10).get());
-//        JTextArea tfNote = new JTextArea(3,25);
-//        add(tfNote, helper.nextCell().fillHorizontally().get());
     }
 
     private void setCurrData() {
@@ -733,14 +888,108 @@ public class DepartureTab extends JPanel {
         tfVoyNoDeparture.setText(settingsPresenter.readSettings().getVoyNo());
     }
 
-    public static void main(String[] args) {
-
-        JFrame frame = new JFrame("Chat Frame");
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(450, 650);
-
-        frame.add(new DepartureTab(new DeparturePresenter()));
-        frame.setVisible(true);
+    @Override
+    public void loadFromJson(@NotNull JsonElement json) {
+        Gson gson = new Gson();
+        DepartureResponse response = null;
+        try {
+            response = gson.fromJson(json, DepartureResponse.class);
+        } catch (JsonSyntaxException e) {
+        }
+        change(response);
     }
 
+    public void change(@NotNull DepartureResponse response) {
+
+        DataSourcePorts dataSourcePorts = DataSourcePorts.getInstance();
+        List<SeaPortDto> ports = dataSourcePorts.getPorts();
+
+        JComboBoxExtension.INSTANCE.setSelectedItem(response.getUnlocode(), response.getTerminalUUID(), ports, cbPortDeparture, cbTerminalDeparture);
+
+
+        cbTZDeparture.setSelectedItem(response.getTimeZone());
+        tfVoyNoDeparture.setText(response.getVoyNo());
+
+        DeparturePresenter.DepartureState departureState = response.getDeparture();
+        if (departureState == DeparturePresenter.DepartureState.BERTH) {
+            departureFromBerth.setSelected(true);
+            departureFromAnchorage.setSelected(false);
+
+            departurePresenter.setDeparture(DeparturePresenter.DepartureState.BERTH);
+            lbTypeReport1.setText("All clear");
+        } else {
+            departureFromBerth.setSelected(false);
+            departureFromAnchorage.setSelected(true);
+
+            lbTypeReport1.setText("Anchor aweigh");
+            departurePresenter.setDeparture(DeparturePresenter.DepartureState.ANCHORAGE);
+        }
+
+        dateTime_1.setDateTime(response.getDateStatus1(), response.getTimeStatus1());
+        dateTime_POB.setDateTime(response.getDatePob(), response.getTimePob());
+
+        tfLSHFOROB.setValue(response.getLSHFOROB_S1());
+        dateTimePilotOff.setDateTime(response.getDatePilotOff(), response.getTimePilotOff());
+
+        tfMGO_01_ROB.setValue(response.getMGO_01_ROB_S1());
+        dateTimeTugMakeFast.setDateTime(response.getDateTugMakeFast(), response.getTimeTugMakeFast());
+
+        tfMGO_05_ROB.setValue(response.getMGO_05_ROB_S1());
+        dateTimeTugCastOff.setDateTime(response.getDateTugCastOff(), response.getTimeTugCastOff());
+
+        tfNoOfTugs.setValue(response.getNoOfTugs());
+
+
+        dateTime_2.setDateTime(response.getDateStatus2(), response.getTimeStatus2());
+        tfManeuveringDist.setValue(response.getManeuveringDist());
+
+        positionFieldLatitude.setPositionWithReaction(response.getLatitude());
+        positionFieldLongitude.setPositionWithReaction(response.getLongitude());
+
+        tfME.setValue(response.getMeRPM());
+        cbMEMode.setSelectedItem(MEMode.valueOf(response.getMeMode()));
+
+        JComboBoxExtension.INSTANCE.setSelectedItem(response.getUnlocodeLastPort(), null, ports, cbLastPort, null);
+        JComboBoxExtension.INSTANCE.setSelectedItem(response.getUnlocodeNextPort(), null, ports, cbNextPort, null);
+
+        dateTimeETANextPortLT.setDateTime(response.getETA_Next_Port_date(), response.getETA_Next_Port_time());
+        tfDistanceToGo.setValue(response.getDistanceToGo());
+
+        tfLshfoROB_s2.setValue(response.getLshfoROB_S2());
+        tfFreshWater.setValue(response.getFreshWater());
+
+        tfMgo_01_rob_s2.setValue(response.getMgo_01_ROB_S2());
+        tfMgo_05_rob_s2.setValue(response.getMgo_05_ROB_S2());
+
+        tfCargoOnDeck.setValue(response.getCargoOnDesk());
+        tfCargoHolds.setValue(response.getCargoHolds());
+
+        tfLaden_20.setValue(response.getContainerLaden_20());
+        tfEmpty_20.setValue(response.getContainerEmpty_20());
+
+        tfLaden_40.setValue(response.getContainerLaden_40());
+        tfEmpty_40.setValue(response.getContainerEmpty_40());
+
+        tfDraftFWD.setValue(response.getDraftFWD());
+        tfBallast.setValue(response.getBallast());
+
+        tfDraftAft.setValue(response.getDraftAft());
+        tfGM.setValue(response.getGm());
+
+        tfDWT.setValue(response.getDwt());
+        tfFWReceived.setValue(response.getFreshWaterReceived());
+
+        tfDisplacement.setValue(response.getDisplacement());
+        tfLiveReefers.setValue(response.getLiveReefers());
+
+        tfNote.setText(response.getNote());
+
+        departurePresenter.setVoyNo(response.getVoyNo());
+        departurePresenter.setTimeZoneGMT(response.getTimeZone());
+    }
+
+    public void errorChange(@NotNull String error) {
+        JOptionPane.showMessageDialog(this, error);
+    }
 }
+

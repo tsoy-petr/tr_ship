@@ -458,7 +458,11 @@ public class DepartureResponse {
     }
 
     public String getNote() {
-        return note;
+        if (note != null) {
+            return note;
+        } else {
+            return note;
+        }
     }
 
     public void setNote(String note) {

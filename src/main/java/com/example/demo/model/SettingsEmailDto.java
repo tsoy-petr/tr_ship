@@ -11,8 +11,12 @@ public class SettingsEmailDto {
     private String voyNo;
     private String serverEmail;
     private String folderForSavingReports;
+    private String emailCopy1;
+    private String emailCopy2;
+    private String emailCopy3;
 
-    public SettingsEmailDto(String smtpServer, int smtpPort, String email, String user, String passwordEmail, String imo, String voyNo, String serverEmail, String folderForSavingReports) {
+    public SettingsEmailDto(String smtpServer, int smtpPort, String email, String user, String passwordEmail, String imo, String voyNo, String serverEmail, String folderForSavingReports,
+                            String emailCopy1, String emailCopy2, String emailCopy3) {
         this.smtpServer = smtpServer;
         this.smtpPort = smtpPort;
         this.email = email;
@@ -22,6 +26,33 @@ public class SettingsEmailDto {
         this.voyNo = voyNo;
         this.serverEmail = serverEmail;
         this.folderForSavingReports = folderForSavingReports;
+        this.emailCopy1 = emailCopy1;
+        this.emailCopy2 = emailCopy2;
+        this.emailCopy3 = emailCopy3;
+    }
+
+    public String getEmailCopy1() {
+        return emailCopy1;
+    }
+
+    public void setEmailCopy1(String emailCopy1) {
+        this.emailCopy1 = emailCopy1;
+    }
+
+    public String getEmailCopy2() {
+        return emailCopy2;
+    }
+
+    public void setEmailCopy2(String emailCopy2) {
+        this.emailCopy2 = emailCopy2;
+    }
+
+    public String getEmailCopy3() {
+        return emailCopy3;
+    }
+
+    public void setEmailCopy3(String emailCopy3) {
+        this.emailCopy3 = emailCopy3;
     }
 
     public String getSmtpServer() {

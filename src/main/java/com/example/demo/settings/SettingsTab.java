@@ -21,6 +21,9 @@ public class SettingsTab extends JPanel {
     JFormattedTextField tfImo;
     JFormattedTextField tfVoyNo;
     FolderPicker tfFolderForSavingReports;
+    JFormattedTextField tfEmailCopy1;
+    JFormattedTextField tfEmailCopy2;
+    JFormattedTextField tfEmailCopy3;
 
     private GridBagHelper helper = new GridBagHelper();
     SettingsPresenter presenter;
@@ -94,6 +97,22 @@ public class SettingsTab extends JPanel {
         //разделитель
         helper.insertEmptyRow(this, 10);
 
+        JLabel lbToCopyEmail = new JLabel("Copy to");
+        add(lbToCopyEmail, helper.nextCell().alignLeft().get());
+        helper.insertEmptyRow(this, 1);
+
+        tfEmailCopy1 = new JFormattedTextField();
+        add(tfEmailCopy1, helper.fillHorizontally().get());
+        helper.insertEmptyRow(this, 3);
+        tfEmailCopy2 = new JFormattedTextField();
+        add(tfEmailCopy2, helper.fillHorizontally().get());
+        helper.insertEmptyRow(this, 3);
+        tfEmailCopy3 = new JFormattedTextField();
+        add(tfEmailCopy3, helper.fillHorizontally().get());
+
+        //разделитель
+        helper.insertEmptyRow(this, 10);
+
         JLabel lbFolderForSavingReports = new JLabel("Folder for saving reports");
         add(lbFolderForSavingReports, helper.nextCell().alignLeft().get());
         helper.insertEmptyRow(this, 1);
@@ -146,7 +165,10 @@ public class SettingsTab extends JPanel {
                         tfPass.getText().trim(),
                         tfImo.getText().trim(),
                         tfVoyNo.getText().trim(),
-                        tfServerEmail.getText().trim(), tfFolderForSavingReports.getPath())
+                        tfServerEmail.getText().trim(), tfFolderForSavingReports.getPath(),
+                        tfEmailCopy1.getText().trim(),
+                        tfEmailCopy2.getText().trim(),
+                        tfEmailCopy3.getText().trim())
         );
 
     }
@@ -164,6 +186,9 @@ public class SettingsTab extends JPanel {
         tfVoyNo.setText(data.getVoyNo());
         tfServerEmail.setText(data.getServerEmail());
         tfFolderForSavingReports.setPath(data.getFolderForSavingReports());
+        tfEmailCopy1.setText(data.getEmailCopy1());
+        tfEmailCopy2.setText(data.getEmailCopy2());
+        tfEmailCopy3.setText(data.getEmailCopy3());
 
     }
 }

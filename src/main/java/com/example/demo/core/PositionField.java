@@ -1,11 +1,10 @@
 package com.example.demo.core;
 
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.time.LocalTime;
 
 public class PositionField extends JPanel {
 
@@ -49,10 +48,11 @@ public class PositionField extends JPanel {
                 final JDialog modelDialog = DialogPosition.getInstance(PositionField.this.position, new DialogPosition.PositionChangeListener() {
                     @Override
                     public void positionChange(Position position) {
-                        PositionField.this.position = position;
-                        listener.result(position);
-
-                        PositionField.this.positionJT.setText(position.toString());
+                        setPositionWithReaction(position);
+//                        PositionField.this.position = position;
+//                        listener.result(position);
+//
+//                        PositionField.this.positionJT.setText(position.toString());
                     }
                 });
 
@@ -60,6 +60,23 @@ public class PositionField extends JPanel {
 
             }
         });
+    }
+
+    public void setPositionWithReaction(Position position){
+        setPosition(position);
+        if(listener != null) {
+            listener.result(position);
+        }
+    }
+
+
+    public void reset(){
+        if (this.position.getTypePosition() == Position.TypePosition.Latitude) {
+            this.position = new Position(Position.TypePosition.Latitude, 0, 0, Position.Hemisphere.N);
+        } else {
+            this.position = new Position(Position.TypePosition.Longitude, 0, 0, Position.Hemisphere.E);
+        }
+        this.positionJT.setText("");
     }
 
     private void setupFields() {
@@ -70,8 +87,17 @@ public class PositionField extends JPanel {
 
     }
 
+    public void setPosition(Position position) {
+        if (position == null) {
+            reset();
+        } else {
+            this.position = position;
+        }
+        this.positionJT.setText(this.position.toString());
+    }
+
     public interface ResultListener {
-        public void result(Position position);
+        void result(Position position);
     }
 
 }

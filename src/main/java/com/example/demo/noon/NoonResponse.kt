@@ -18,7 +18,7 @@ data class NoonResponse(
     val distanceToGo: Double = 0.0,
     val dateETA: String = "",
     val timeETA: String = "",
-    val meMode: String? = null,
+    val meMode: String = "",
     val meRPM: Int = 0,
     val course: Int = 0,
     val hfoROB: Double = 0.0,
@@ -31,7 +31,22 @@ data class NoonResponse(
     val swellHeight: Int = 0,
     val swellDirection: Int = 0,
     val note: String = ""
-)
+) {
+
+    companion object {
+        fun findStatusByString(statusName: String):Status {
+
+            return when(statusName) {
+                "At see/Adrift" -> Status.AtSeeAdrift
+                "At see/Underway" -> Status.ASseeUnderway
+                "At anchor" -> Status.AtAnchor
+                "In port" -> Status.InPort
+                else -> Status.AtSeeAdrift
+            }
+
+        }
+    }
+}
 
 enum class Status {
     AtSeeAdrift {
@@ -47,3 +62,6 @@ enum class Status {
         override fun toString() = "In port"
     }
 }
+
+
+

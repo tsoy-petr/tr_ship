@@ -24,4 +24,10 @@ public class Common {
         }
     }
 
+    public static Boolean isEmpty(String str) {
+
+        return (str == null || str.isEmpty());
+
+    }
+
 }

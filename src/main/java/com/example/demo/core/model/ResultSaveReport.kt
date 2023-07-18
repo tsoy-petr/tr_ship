@@ -1,4 +1,4 @@
-package com.example.demo.noon
+package com.example.demo.core.model
 
 data class ResultSaveReport(
     private var isSuccess: Boolean, private var message: String = "",
