@@ -23,7 +23,7 @@ class NoonSendUseCase() : UseCase<UseCase.None, NoonSendUseCase.Params>() {
         val sourcePorts = DataSourcePorts.getInstance()
         val port: SeaPortDto? = sourcePorts.ports.find { port -> port.unlocode.equals(response.unlocode) }
         val terminal = port?.terminals!!.find { t -> t.uid.equals(response.terminalUUID) }
-        val portTerminalData = if (response.status == "In Port"||response.status == "At anchor") {
+        val portTerminalData = if (response.status == "In port"||response.status == "At anchor") {
             "Port\t\t\t\t\t\t: ${response.unlocode}\n" +
                     "Terminal (Name)\t\t\t\t: $terminal (*${response.terminalUUID}*)\n"
 

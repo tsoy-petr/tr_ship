@@ -322,10 +322,7 @@ class NoonTab(
         elementWithError.put(ComponentKey(cbLastPort, NoValidData.UnlocodeLast), cbLastPort.border)
         elementWithError.put(ComponentKey(dateTimeLT, NoValidData.DateTimeStatus_1), dateTimeLT.border)
         elementWithError.put(ComponentKey(positionFieldLatitude, NoValidData.Latitude_1), positionFieldLatitude.border)
-        elementWithError.put(
-            ComponentKey(positionFieldLongitude, NoValidData.Longitude_1),
-            positionFieldLongitude.border
-        )
+        elementWithError.put(ComponentKey(positionFieldLongitude, NoValidData.Longitude_1), positionFieldLongitude.border)
         elementWithError.put(ComponentKey(cbTerminal, NoValidData.Terminal), cbTerminal.border)
 
         CoroutineScope(context = EmptyCoroutineContext).launch {
@@ -372,6 +369,11 @@ class NoonTab(
                     cbMeMode.selectedItem = MEMode.ECO
                     tfCourse.value = 0
                     tfSpeed.value = 0
+
+                    jlPositionLatitude.isVisible = isAtAnchor
+                    jlPositionLongitude.isVisible = isAtAnchor
+                    positionFieldLatitude.isVisible = isAtAnchor
+                    positionFieldLongitude.isVisible = isAtAnchor
 
                 } else if (isInPort) {
 
